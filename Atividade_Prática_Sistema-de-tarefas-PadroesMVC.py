@@ -12,7 +12,7 @@ class Tarefa:
 
     def __str__(self):
         # Método especial para mostrar a tarefa de forma amigável
-        status = "Concluída ✔️" if self.concluida else "Não concluída ❌"
+        status = "Concluída" if self.concluida else "Não concluída"
         return f"{status} {self.descricao}"
 
 # Singleton para gerenciar tarefas
@@ -144,4 +144,5 @@ def menu():
 
 # Este bloco garante que o menu só será executado se o arquivo for rodado diretamente
 if __name__ == "__main__":
+
     menu()
