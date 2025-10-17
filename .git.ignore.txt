@@ -1,0 +1,26 @@
+# __pycache__ e arquivos compilados
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes virtuais
+venv/
+.env/
+
+# Arquivos temporários do VS Code e sistema operacional
+.vscode/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Arquivos de backup
+*.bak
+*.swp
+
+# Arquivos de configuração do Jupyter (caso use)
+.ipynb_checkpoints/
+
+# Arquivos de cache do pip
+pip-wheel-metadata/
+*.egg-info/
