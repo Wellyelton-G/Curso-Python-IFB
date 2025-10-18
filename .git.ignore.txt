@@ -6,6 +6,7 @@ __pycache__/
 # Ambientes virtuais
 venv/
 .env/
+.vscode/
 
 # Arquivos temporários do VS Code e sistema operacional
 .vscode/
