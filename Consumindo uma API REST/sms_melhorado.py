@@ -18,7 +18,7 @@ auth_token  = os.getenv("TWILIO_AUTH_TOKEN")
 from_number = os.getenv("TWILIO_FROM")
 to_number   = os.getenv("TO_NUMBER")
 
-# Código didático para enviar um SMS com Twilio. Comentários explicam linha a linha.
+# Código didático para enviar um SMS com Twilio. Os comentários explicam linha a linha.
 
 from twilio.rest import Client          # Biblioteca oficial da Twilio para enviar mensagens
 from dotenv import load_dotenv          # Usada para carregar variáveis de ambiente de um arquivo .env
