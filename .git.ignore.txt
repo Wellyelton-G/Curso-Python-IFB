@@ -19,7 +19,7 @@ Thumbs.db
 *.bak
 *.swp
 
-# Arquivos de configuração do Jupyter (caso use)
+# Arquivos de configuração do Jupyter 
 .ipynb_checkpoints/
 
 # Arquivos de cache do pip
