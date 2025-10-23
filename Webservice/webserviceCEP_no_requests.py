@@ -1,5 +1,4 @@
 # Exemplo funcional sem instalar dependências externas.
-# Execute no terminal: python c:\Users\1904388\Downloads\webserviceCEP_no_requests.py
 
 import json                # Para converter texto JSON em estruturas Python (dict/list) e vice‑versa
 import socket              # Usado para detectar timeout de conexão de baixo nível
