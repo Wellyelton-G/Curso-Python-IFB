@@ -1,0 +1,20 @@
+<h1>Book Catalog</h1>
+
+<div style="display: flex; flex-wrap: wrap;">
+  {% for book in books %}
+    <div style="border: 1px solid #ccc; padding: 10px; margin: 10px; width: 200px; text-align: center;">
+      {% if book.cover_image %}
+        <img src="{{ book.cover_image.url }}" alt="Cover for {{ book.title }}" style="max-width: 150px; max-height: 200px;">
+      {% else %}
+        <p>No cover</p>
+      {% endif %}
+      <h3>{{ book.title }}</h3>
+      <p>by {{ book.author }}</p>
+      <p>Available: {{ book.available_copies }}/{{ book.total_copies }}</p>
+    </div>
+  {% endfor %}
+</div>
+
+<a href="{% url 'add_book' %}">Add New Book</a>
+<br>
+<a href="{% url 'login' %}">Login</a>

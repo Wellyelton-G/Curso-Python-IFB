@@ -1,0 +1,6 @@
+<h1>Overdue Books</h1>
+<ul>
+  {% for b in overdue_books %}
+    <li>{{ b.book }} (Due: {{ b.due_date }}) — Borrower: {{ b.user }}</li>
+  {% endfor %}
+</ul>
