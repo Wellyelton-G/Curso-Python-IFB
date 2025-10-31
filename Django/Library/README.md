@@ -673,20 +673,6 @@ Descreva:
 3. Passos para reproduzir
 4. Versão do Python e Django
 
-### Melhorias Futuras
-
-Possíveis expansões:
-- **Redimensionamento automático de capas** (django-imagekit, Pillow)
-- **Validação de tamanho de arquivo** (limite de MB)
-- **Armazenamento em cloud** (AWS S3, Cloudinary)
-- **Lazy loading de imagens** (performance)
-- Notificações por email de atraso
-- Sistema de reservas
-- Multas automáticas
-- Renovação de empréstimo
-- Integração com código de barras
-- API REST (Django REST Framework)
-- App mobile
 
 ---
 

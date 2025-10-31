@@ -593,7 +593,7 @@ Crie o arquivo `templates/registration/login.html`:
 </head>
 <body>
     <div class="login-box">
-        <h1>🏛️ Biblioteca</h1>
+        <h1>Biblioteca</h1>
         
         {% if form.errors %}
             <div class="error">
