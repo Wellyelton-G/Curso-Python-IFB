@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Livros · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Livros disponíveis</h1>
+  {% if books %}
+    <table>
+      <thead>
+        <tr>
+          <th>Capa</th>
+          <th>Título</th>
+          <th>Autor</th>
+          <th>ISBN</th>
+          <th>Disponíveis</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for book in books %}
+        <tr>
+          <td>
+            {# Exibe a capa do livro se houver imagem cadastrada #}
+            {% if book.image %}
+              {# book.image.url retorna a URL completa: /media/book_covers/nome_arquivo.jpg #}
+              {# object-fit: cover mantém a proporção cortando excesso se necessário #}
+              <img src="{{ book.image.url }}" alt="Capa de {{ book.title }}" style="width: 60px; height: 90px; object-fit: cover; border-radius: 4px;">
+            {% else %}
+              {# Placeholder visual quando não há imagem #}
+              {# var(--accent) e var(--bg) são variáveis CSS do tema (adaptam ao modo claro/escuro) #}
+              <div style="width: 60px; height: 90px; background: var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 12px; text-align: center;">Sem capa</div>
+            {% endif %}
+          </td>
+          <td>{{ book.title }}</td>
+          <td>{{ book.author }}</td>
+          <td class="muted">{{ book.isbn }}</td>
+          <td>{{ book.copies_available }}</td>
+          <td>
+            {% if book.copies_available > 0 %}
+              <form method="post" action="{% url 'catalog:borrow_book' book.id %}">
+                {% csrf_token %}
+                <button class="btn" type="submit">Emprestar</button>
+              </form>
+            {% else %}
+              <button class="btn" disabled>Indisponível</button>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">Nenhum livro cadastrado.</p>
+  {% endif %}
+{% endblock %}

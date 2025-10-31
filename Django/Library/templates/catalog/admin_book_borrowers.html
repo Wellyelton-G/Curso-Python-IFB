@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Quem emprestou · Biblioteca{% endblock %}
+{% block content %}
+  {# Cabeçalho com capa do livro em destaque (estilo card) #}
+  {# display: flex posiciona capa e informações lado a lado #}
+  <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+    {% if book.image %}
+      {# Capa maior (100x150px) com sombra para dar destaque visual #}
+      {# box-shadow cria efeito de profundidade #}
+      <img src="{{ book.image.url }}" alt="Capa de {{ book.title }}" style="width: 100px; height: 150px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+    {% else %}
+      {# Placeholder com mesmas dimensões e sombra #}
+      <div style="width: 100px; height: 150px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">Sem capa</div>
+    {% endif %}
+    <div>
+      <h1 style="margin: 0 0 10px 0;">Quem emprestou: {{ book.title }}</h1>
+      {# var(--muted) usa cor do tema para texto secundário #}
+      <p style="margin: 0; color: var(--muted);">{{ book.author }}</p>
+    </div>
+  </div>
+  
+  {% if active_loans %}
+    <ul>
+      {% for loan in active_loans %}
+        <li>{{ loan.user.get_username }} — desde {{ loan.borrowed_at|date:'d/m/Y H:i' }}, devolução {{ loan.due_date|date:'d/m/Y' }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Nenhum empréstimo ativo para este livro.</p>
+  {% endif %}
+{% endblock %}

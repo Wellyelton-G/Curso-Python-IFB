@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Atrasados · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Empréstimos atrasados</h1>
+  {% if loans %}
+    <table>
+      <thead>
+        <tr>
+          <th>Capa</th>
+          <th>Livro</th>
+          <th>Usuário</th>
+          <th>Devolver até</th>
+          <th>Emprestado em</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for loan in loans %}
+        <tr>
+          <td>
+            {% if loan.book.image %}
+              <img src="{{ loan.book.image.url }}" alt="Capa de {{ loan.book.title }}" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px;">
+            {% else %}
+              <div style="width: 50px; height: 75px; background: var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 10px; text-align: center;">Sem capa</div>
+            {% endif %}
+          </td>
+          <td>{{ loan.book.title }}</td>
+          <td>{{ loan.user.get_username }}</td>
+          <td class="danger">{{ loan.due_date|date:'d/m/Y' }}</td>
+          <td>{{ loan.borrowed_at|date:'d/m/Y H:i' }}</td>
+          <td>
+            <form method="post" action="{% url 'catalog:admin_mark_returned' loan.id %}">
+              {% csrf_token %}
+              <button class="btn" type="submit">Marcar devolvido</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">Sem empréstimos atrasados.</p>
+  {% endif %}
+{% endblock %}

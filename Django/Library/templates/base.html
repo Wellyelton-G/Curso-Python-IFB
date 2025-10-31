@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Biblioteca{% endblock %}</title>
+  <style>
+    /*
+      Tema global com CSS variables: aplica-se a todo o site.
+      Alternamos adicionando/removendo a classe .theme-dark no <html> (documentElement).
+    */
+    :root {
+      --bg: #fafafa;
+      --text: #111111;
+      --primary: #20232a; /* header */
+      --accent: #61dafb;  /* links do header */
+      --muted: #666666;
+      --card-bg: #ffffff;
+      --card-border: #e4e4e4;
+      --danger: #b00020;
+      --success: #0a7f2e;
+      --btn-bg: #f6f6f6;
+      --btn-border: #cccccc;
+      --table-border: #eeeeee;
+    }
+    .theme-dark {
+      --bg: #0f1115;
+      --text: #e6e6e6;
+      --primary: #151a21;
+      --accent: #7ccfff;
+      --muted: #9aa0a6;
+      --card-bg: #1b2029;
+      --card-border: #2a2f3a;
+      --danger: #ff6b6b;
+      --success: #34d399;
+      --btn-bg: #222833;
+      --btn-border: #39424e;
+      --table-border: #2a2f3a;
+    }
+
+    body { font-family: system-ui, Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    header { background: var(--primary); color:#fff; padding:12px 16px; }
+    header a { color: var(--accent); text-decoration:none; margin-right:12px; }
+    main { padding:16px; max-width: 960px; margin: 0 auto; }
+    .card { background: var(--card-bg); border:1px solid var(--card-border); padding:12px; margin-bottom:10px; border-radius:8px; }
+    .muted { color: var(--muted); }
+    .danger { color: var(--danger); }
+    .success { color: var(--success); }
+    .btn { display:inline-block; padding:6px 10px; border:1px solid var(--btn-border); background: var(--btn-bg); color: var(--text); border-radius:6px; cursor:pointer; }
+    .btn[disabled] { opacity: .5; cursor: not-allowed; }
+    nav .right { float:right; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding:8px; border-bottom:1px solid var(--table-border); text-align:left; }
+    .toggle { margin-right:12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="{% url 'catalog:book_list' %}">Livros</a>
+      <a href="{% url 'catalog:my_loans' %}">Meus empréstimos</a>
+      {% if user.is_staff %}
+        <a href="{% url 'admin:index' %}">Admin</a>
+        <a href="{% url 'catalog:admin_overdue_loans' %}">Atrasados</a>
+      {% endif %}
+      <span class="right">
+        <button id="theme-toggle" class="btn toggle" type="button" aria-label="Alternar tema"></button>
+        {% if user.is_authenticated %}
+          <span class="muted">Olá, {{ user.get_username }}</span>
+          <form style="display:inline" action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button class="btn" type="submit">Sair</button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}">Entrar</a>
+        {% endif %}
+      </span>
+    </nav>
+  </header>
+  <main>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="card {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    (function(){
+      var key = 'theme';
+      var root = document.documentElement; // <html>
+      var btn = document.getElementById('theme-toggle');
+      function apply(theme){
+        if(theme === 'dark'){
+          root.classList.add('theme-dark');
+          if(btn){ btn.textContent = '☾'; btn.title = 'Tema escuro'; btn.setAttribute('aria-pressed','true'); }
+        }else{
+          root.classList.remove('theme-dark');
+          if(btn){ btn.textContent = '☀'; btn.title = 'Tema claro'; btn.setAttribute('aria-pressed','false'); }
+        }
+      }
+      var saved = localStorage.getItem(key);
+      if(!saved && window.matchMedia){ saved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+      apply(saved || 'light');
+      if(btn){
+        btn.addEventListener('click', function(){
+          var next = root.classList.contains('theme-dark') ? 'light' : 'dark';
+          localStorage.setItem(key, next);
+          apply(next);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+
+Passo a Passo para configuração do Ambiente de Desenvolvimento
+
+1º Passo - Certifique se o Python está instalado no seu perfil de usuário
+Caso não esteja, acesse o endereço https://www.python.org/downloads/ para efetuar a instalado.
+
+2º Passo - Crie um diretório onde será executado o projeto
+
+3º Passo - Abra a pasta dentro do VsCode
+
+4º Passo - Dentro do VsCode execute o comando abaixo
+
+No PowerShell, digite o seguinte comando para permitir a execução de scripts:
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+
+5º Passo - Instalação do Django
+python -m venv meuAmbiente
+meuAmbiente\Scripts\activate
+
+6º Passo - Criando o projeto 
+
+django-admin startproject library
+
+Aqui, você pode colocar o nome que você desejar. Neste passo a passo, coloquei library
+
+7º Passo ao seguir os passos descritos na aula Django
+
+Para voltar da pasta library para Django no PowerShell, use:
+
+cd ..
+
+

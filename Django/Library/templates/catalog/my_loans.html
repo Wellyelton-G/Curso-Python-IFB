@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Meus empréstimos · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Meus empréstimos</h1>
+  {% if loans %}
+    <table>
+      <thead>
+        <tr>
+          <th>Capa</th>
+          <th>Livro</th>
+          <th>Emprestado em</th>
+          <th>Devolver até</th>
+          <th>Status</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for loan in loans %}
+        <tr>
+          <td>
+            {# Acessa a imagem através do relacionamento: loan.book.image #}
+            {# Como Loan tem ForeignKey para Book, acessamos campos do livro com loan.book.* #}
+            {% if loan.book.image %}
+              <img src="{{ loan.book.image.url }}" alt="Capa de {{ loan.book.title }}" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px;">
+            {% else %}
+              {# Miniatura menor (50x75) para não ocupar muito espaço na tabela de histórico #}
+              <div style="width: 50px; height: 75px; background: var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 10px; text-align: center;">Sem capa</div>
+            {% endif %}
+          </td>
+          <td>{{ loan.book.title }}</td>
+          <td>{{ loan.borrowed_at|date:'d/m/Y H:i' }}</td>
+          <td>{{ loan.due_date|date:'d/m/Y' }}</td>
+          <td>
+            {% if loan.returned_at %}
+              <span class="muted">Devolvido em {{ loan.returned_at|date:'d/m/Y H:i' }}</span>
+            {% elif loan.is_overdue %}
+              <strong class="danger">Atrasado</strong>
+            {% else %}
+              <span>Ativo</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if not loan.returned_at %}
+              <form method="post" action="{% url 'catalog:return_book' loan.id %}">
+                {% csrf_token %}
+                <button class="btn" type="submit">Devolver</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">Você ainda não possui empréstimos.</p>
+  {% endif %}
+{% endblock %}
