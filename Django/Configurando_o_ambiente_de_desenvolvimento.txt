@@ -30,3 +30,6 @@ Para voltar da pasta library para Django no PowerShell, use:
 cd ..
 
 
+Inicializar o servidor local 
+
+python manage.py runserver                                                                                       
