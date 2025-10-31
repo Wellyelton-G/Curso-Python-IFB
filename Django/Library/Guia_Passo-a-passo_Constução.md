@@ -2,7 +2,7 @@
 
 > Guia completo passo a passo para criar um sistema de gerenciamento de biblioteca do zero
 
-## 📋 Índice
+## Índice
 
 1. [Visão Geral do Projeto](#1-visão-geral-do-projeto)
 2. [Preparação do Ambiente](#2-preparação-do-ambiente)
