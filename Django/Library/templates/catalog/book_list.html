@@ -2,7 +2,25 @@
 {% block title %}Livros · Biblioteca{% endblock %}
 {% block content %}
   <h1>Livros disponíveis</h1>
+
+  {# Formulário de busca e filtros (GET preserva compartilhamento via URL) #}
+  <form method="get" style="margin-bottom: 1rem; display: flex; gap: .75rem; flex-wrap: wrap; align-items: flex-end;">
+    <div style="flex:1; min-width:240px;">
+      <label for="q" style="font-size:.85rem; font-weight:600;">Buscar (título, autor ou ISBN)</label>
+      <input id="q" type="text" name="q" value="{{ q }}" placeholder="Ex.: Python" style="width:100%;">
+    </div>
+    <div style="display:flex; align-items:center; gap:.35rem;">
+      <input id="disp" type="checkbox" name="disponivel" value="1" {% if show_only_available %}checked{% endif %}>
+      <label for="disp" style="font-size:.85rem;">Somente disponíveis</label>
+    </div>
+    <div>
+      <button class="btn" type="submit">Filtrar</button>
+      <a class="btn" href="{% url 'catalog:book_list' %}" style="background:var(--muted);">Limpar</a>
+    </div>
+  </form>
+
   {% if books %}
+    <p class="muted" style="font-size:.8rem;">Total nesta página: {{ page_obj.paginator.count }} livros encontrados. Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.</p>
     <table>
       <thead>
         <tr>
@@ -18,14 +36,9 @@
       {% for book in books %}
         <tr>
           <td>
-            {# Exibe a capa do livro se houver imagem cadastrada #}
             {% if book.image %}
-              {# book.image.url retorna a URL completa: /media/book_covers/nome_arquivo.jpg #}
-              {# object-fit: cover mantém a proporção cortando excesso se necessário #}
               <img src="{{ book.image.url }}" alt="Capa de {{ book.title }}" style="width: 60px; height: 90px; object-fit: cover; border-radius: 4px;">
             {% else %}
-              {# Placeholder visual quando não há imagem #}
-              {# var(--accent) e var(--bg) são variáveis CSS do tema (adaptam ao modo claro/escuro) #}
               <div style="width: 60px; height: 90px; background: var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 12px; text-align: center;">Sem capa</div>
             {% endif %}
           </td>
@@ -47,7 +60,26 @@
       {% endfor %}
       </tbody>
     </table>
+
+    {# Controles de paginação #}
+    {% if page_obj.paginator.num_pages > 1 %}
+      <nav style="margin-top:1rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
+        {% if page_obj.has_previous %}
+          <a class="btn" href="?q={{ q }}{% if show_only_available %}&disponivel=1{% endif %}&page={{ page_obj.previous_page_number }}">« Anterior</a>
+        {% else %}
+          <button class="btn" disabled>« Anterior</button>
+        {% endif %}
+
+        <span style="font-size:.8rem;">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+          <a class="btn" href="?q={{ q }}{% if show_only_available %}&disponivel=1{% endif %}&page={{ page_obj.next_page_number }}">Próxima »</a>
+        {% else %}
+          <button class="btn" disabled>Próxima »</button>
+        {% endif %}
+      </nav>
+    {% endif %}
   {% else %}
-    <p class="muted">Nenhum livro cadastrado.</p>
+    <p class="muted">Nenhum livro encontrado para os critérios informados.</p>
   {% endif %}
 {% endblock %}

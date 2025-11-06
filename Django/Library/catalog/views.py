@@ -8,7 +8,8 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
+from django.core.paginator import Paginator
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -31,13 +32,47 @@ def book_list(request: HttpRequest) -> HttpResponse:
 	- annotate(active_loans=...): cria um campo calculado na consulta
 	  para saber quantos empréstimos estão ativos por livro.
 	- O template mostra o botão de emprestar quando há disponibilidade.
+	- Melhorias de usabilidade adicionadas:
+	  * Busca textual (título, autor ou ISBN) via parâmetro GET `q`.
+	  * Filtro de disponibilidade (mostrar só livros que ainda têm cópias) com `disponivel=1`.
+	  * Paginação (10 itens por página) com parâmetro `page`.
 	"""
-	books = (
+
+	# 1) Base queryset com contagem de empréstimos ativos
+	qs = (
 		Book.objects.all()
 		.annotate(active_loans=Count("loans", filter=Q(loans__returned_at__isnull=True)))
 		.order_by("title")
 	)
-	return render(request, "catalog/book_list.html", {"books": books})
+
+	# 2) Busca (parâmetro GET ?q=...)
+	q = request.GET.get("q", "").strip()
+	if q:
+		qs = qs.filter(
+			Q(title__icontains=q)
+			| Q(author__icontains=q)
+			| Q(isbn__icontains=q)
+		)
+
+	# 3) Filtro de disponibilidade (?disponivel=1)
+	disponivel_param = request.GET.get("disponivel")
+	show_only_available = disponivel_param == "1"
+	if show_only_available:
+		# active_loans < copies_total
+		qs = qs.filter(active_loans__lt=F("copies_total"))
+
+	# 4) Paginação
+	paginator = Paginator(qs, 10)  # 10 livros por página
+	page_number = request.GET.get("page")
+	page_obj = paginator.get_page(page_number)
+
+	context = {
+		"books": page_obj.object_list,
+		"page_obj": page_obj,
+		"q": q,
+		"show_only_available": show_only_available,
+	}
+	return render(request, "catalog/book_list.html", context)
 
 
 @login_required

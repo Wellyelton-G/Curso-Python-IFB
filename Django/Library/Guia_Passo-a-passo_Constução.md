@@ -2,7 +2,7 @@
 
 > Guia completo passo a passo para criar um sistema de gerenciamento de biblioteca do zero
 
-## Índice
+## 📋 Índice
 
 1. [Visão Geral do Projeto](#1-visão-geral-do-projeto)
 2. [Preparação do Ambiente](#2-preparação-do-ambiente)
@@ -593,7 +593,7 @@ Crie o arquivo `templates/registration/login.html`:
 </head>
 <body>
     <div class="login-box">
-        <h1>Biblioteca</h1>
+        <h1>🏛️ Biblioteca</h1>
         
         {% if form.errors %}
             <div class="error">
