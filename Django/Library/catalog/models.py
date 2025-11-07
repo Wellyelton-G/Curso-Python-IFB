@@ -14,6 +14,24 @@ from django.db.models.functions import Cast
 from django.utils import timezone
 
 
+class Category(models.Model):
+	"""Categoria/Gênero do livro.
+
+	Mantemos simples com um nome único e uma descrição opcional. Esta
+	classe permite filtrar o acervo por gênero (ex.: Romance, Didático,
+	Tecnologia). Também é usada na busca avançada.
+	"""
+
+	name = models.CharField(max_length=100, unique=True)
+	description = models.TextField(blank=True)
+
+	class Meta:
+		ordering = ["name"]
+
+	def __str__(self) -> str:  # pragma: no cover - representação no admin
+		return self.name
+
+
 class Book(models.Model):
 	"""Livro do acervo.
 
@@ -35,6 +53,17 @@ class Book(models.Model):
 	# - null=True: permite valor NULL no banco (livros sem capa ainda funcionam)
 	# Acesso à imagem no template: {{ book.image.url }} retorna a URL completa
 	image = models.ImageField(upload_to='book_covers/', blank=True, null=True)
+
+	# Campos extras para filtros avançados (todos opcionais)
+	category = models.ForeignKey(
+		Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="books"
+	)
+	language = models.CharField("Idioma", max_length=50, blank=True)
+	publisher = models.CharField("Editora", max_length=150, blank=True)
+	edition_year = models.IntegerField("Ano de edição", null=True, blank=True)
+	series = models.CharField("Série", max_length=150, blank=True)
+	subject = models.CharField("Assunto", max_length=150, blank=True)
+	material = models.CharField("Material", max_length=100, blank=True)
 	
 	created_at = models.DateTimeField(auto_now_add=True)
 
@@ -111,3 +140,26 @@ class Loan(models.Model):
 		if not self.returned_at:
 			self.returned_at = timezone.now()
 			self.save(update_fields=["returned_at"])
+
+
+class SearchQuery(models.Model):
+	"""Histórico de buscas realizadas.
+
+	Armazenamos tanto buscas de usuários autenticados quanto de sessões
+	(anônimos), permitindo mostrar pesquisas recentes por usuário e
+	coletar métricas. O campo `params` guarda os filtros aplicados para
+	reproduzir a consulta depois.
+	"""
+
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+	session_key = models.CharField(max_length=40, blank=True, help_text="Chave da sessão quando usuário não está logado")
+	q = models.CharField(max_length=255, blank=True)
+	params = models.JSONField(default=dict, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ["-created_at"]
+
+	def __str__(self) -> str:  # pragma: no cover
+		usuario = self.user or self.session_key or "anon"
+		return f"{usuario}: {self.q} ({self.created_at:%d/%m %H:%M})"

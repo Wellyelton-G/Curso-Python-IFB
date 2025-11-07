@@ -1,5 +1,7 @@
 # Sistema de Gerenciamento de Biblioteca
 
+
+
 > Sistema web  para gestão de acervo e empréstimos de biblioteca, desenvolvido em Django 5.2.7
 
 ## Índice
@@ -672,21 +674,6 @@ Descreva:
 2. Comportamento atual
 3. Passos para reproduzir
 4. Versão do Python e Django
-
-### Melhorias Futuras
-
-Possíveis expansões:
-- **Redimensionamento automático de capas** (django-imagekit, Pillow)
-- **Validação de tamanho de arquivo** (limite de MB)
-- **Armazenamento em cloud** (AWS S3, Cloudinary)
-- **Lazy loading de imagens** (performance)
-- Notificações por email de atraso
-- Sistema de reservas
-- Multas automáticas
-- Renovação de empréstimo
-- Integração com código de barras
-- API REST (Django REST Framework)
-- App mobile
 
 ---
 

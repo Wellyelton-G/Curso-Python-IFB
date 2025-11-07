@@ -136,6 +136,9 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'catalog:book_list'
 LOGOUT_REDIRECT_URL = 'login'
 
+# E-mail: em desenvolvimento, imprimimos os e-mails no console
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

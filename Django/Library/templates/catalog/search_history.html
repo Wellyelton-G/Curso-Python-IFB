@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Histórico de buscas · Biblioteca{% endblock %}
+{% block content %}
+<h1>Histórico de buscas</h1>
+<div style="margin-bottom:1rem; display:flex; gap:.5rem; flex-wrap:wrap;">
+  <a class="btn" href="{% url 'catalog:book_list' %}">← Voltar</a>
+  {% if searches %}
+    <a class="btn" href="?export=csv">⬇ Exportar CSV</a>
+    <a class="btn" href="?export=xlsx">⬇ Exportar Excel</a>
+  {% endif %}
+</div>
+{% if searches %}
+  <table>
+    <thead>
+      <tr>
+        <th>Data/Hora</th>
+        <th>Termo</th>
+        <th>Parâmetros</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for s in searches %}
+      <tr>
+        <td>{{ s.created_at|date:'d/m/Y H:i' }}</td>
+        <td>{% if s.q %}<code>{{ s.q }}</code>{% else %}<span class="muted">(vazio)</span>{% endif %}</td>
+        <td style="font-size:.75rem;">
+          {% for k,v in s.params.items %}
+            <strong>{{ k }}:</strong> {{ v|default:'-' }}{% if not forloop.last %}; {% endif %}
+          {% endfor %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="muted">Nenhuma busca registrada ainda.</p>
+{% endif %}
+{% endblock %}

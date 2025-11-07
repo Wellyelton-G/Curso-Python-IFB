@@ -8,15 +8,17 @@ para marcar empréstimos como devolvidos.
 from django.contrib import admin
 from django.utils import timezone
 
-from .models import Book, Loan
+from .models import Book, Loan, Category, SearchQuery
 
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
 	# Quais colunas mostrar na listagem
-	list_display = ("title", "author", "isbn", "copies_total", "copies_available")
+	list_display = ("title", "author", "isbn", "copies_total", "copies_available", "category")
 	# Campos pesquisáveis na barra de busca
-	search_fields = ("title", "author", "isbn")
+	search_fields = ("title", "author", "isbn", "publisher")
+	# Filtros laterais úteis
+	list_filter = ("category", "language", "edition_year")
 
 
 @admin.register(Loan)
@@ -44,3 +46,16 @@ class LoanAdmin(admin.ModelAdmin):
 			loan.save(update_fields=["returned_at"])
 			updated += 1
 		self.message_user(request, f"{updated} empréstimo(s) marcados como devolvidos.")
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+	list_display = ("name",)
+	search_fields = ("name",)
+
+
+@admin.register(SearchQuery)
+class SearchQueryAdmin(admin.ModelAdmin):
+	list_display = ("q", "user", "session_key", "created_at")
+	search_fields = ("q", "user__username", "session_key")
+	list_filter = ("created_at",)

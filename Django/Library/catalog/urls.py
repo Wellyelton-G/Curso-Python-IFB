@@ -12,6 +12,9 @@ app_name = "catalog"
 urlpatterns = [
     # Página inicial: lista livros
     path("", views.book_list, name="book_list"),
+    path("advanced-search/", views.advanced_search, name="advanced_search"),
+    path("me/searches/", views.search_history, name="search_history"),
+    path("signup/", views.signup, name="signup"),
     # Ações do usuário
     path("borrow/<int:book_id>/", views.borrow_book, name="borrow_book"),
     path("return/<int:loan_id>/", views.return_book, name="return_book"),

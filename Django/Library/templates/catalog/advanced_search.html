@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Busca Avançada · Biblioteca{% endblock %}
+{% block content %}
+<h1>Busca avançada</h1>
+<p class="muted" style="margin-top:-4px; font-size:.85rem;">Use vários campos para refinar. Deixe em branco os que não quiser aplicar.</p>
+<form method="get" action="{% url 'catalog:book_list' %}" style="margin-top:1rem; padding:1rem; background:var(--card-bg); border:1px solid var(--card-border); border-radius:8px;">
+  <div style="display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <div>
+      <label for="title" style="display:block; margin-bottom:.3rem; font-weight:500;">Título contém</label>
+      <input id="title" name="title" type="text" style="width:100%; padding:.5rem; border:1px solid var(--btn-border); border-radius:4px; background:var(--bg); color:var(--text);">
+    </div>
+    <div>
+      <label for="author" style="display:block; margin-bottom:.3rem; font-weight:500;">Autor contém</label>
+      <input id="author" name="author" type="text" style="width:100%; padding:.5rem; border:1px solid var(--btn-border); border-radius:4px; background:var(--bg); color:var(--text);">
+    </div>
+    <div>
+      <label for="isbn" style="display:block; margin-bottom:.3rem; font-weight:500;">ISBN</label>
+      <input id="isbn" name="isbn" type="text" placeholder="978..." style="width:100%; padding:.5rem; border:1px solid var(--btn-border); border-radius:4px; background:var(--bg); color:var(--text);">
+    </div>
+    <div>
+      <label for="categoria" style="display:block; margin-bottom:.3rem; font-weight:500;">Categoria</label>
+      <select id="categoria" name="categoria" style="width:100%; padding:.5rem; border:1px solid var(--btn-border); border-radius:4px; background:var(--bg); color:var(--text);">
+        <option value="">-- Todas --</option>
+        {% for c in categorias %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="idioma" style="display:block; margin-bottom:.3rem; font-weight:500;">Idioma</label>
+      <select id="idioma" name="idioma" style="width:100%; padding:.5rem; border:1px solid var(--btn-border); border-radius:4px; background:var(--bg); color:var(--text);">
+        <option value="">-- Qualquer --</option>
+        {% for lang in languages %}
+          <option value="{{ lang }}">{{ lang }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="display:block; margin-bottom:.3rem; font-weight:500;">Ano (faixa)</label>
+      <div style="display:flex; gap:.5rem;">
+        <input type="number" name="ano_min" placeholder="mín" style="flex:1; padding:.5rem; border:1px solid var(--btn-border); border-radius:4px; background:var(--bg); color:var(--text);">
+        <input type="number" name="ano_max" placeholder="máx" style="flex:1; padding:.5rem; border:1px solid var(--btn-border); border-radius:4px; background:var(--bg); color:var(--text);">
+      </div>
+    </div>
+    <div>
+      <label for="ordenar" style="display:block; margin-bottom:.3rem; font-weight:500;">Ordenar por</label>
+      <select id="ordenar" name="ordenar" style="width:100%; padding:.5rem; border:1px solid var(--btn-border); border-radius:4px; background:var(--bg); color:var(--text);">
+        <option value="title">Título (A-Z)</option>
+        <option value="author">Autor (A-Z)</option>
+        <option value="disponibilidade">Disponibilidade crescente</option>
+      </select>
+    </div>
+    <div>
+      <label for="mostrar" style="display:block; margin-bottom:.3rem; font-weight:500;">Itens por página</label>
+      <select id="mostrar" name="mostrar" style="width:100%; padding:.5rem; border:1px solid var(--btn-border); border-radius:4px; background:var(--bg); color:var(--text);">
+        <option value="20">20 itens</option>
+        <option value="todos">Todos</option>
+      </select>
+    </div>
+    <div style="display:flex; align-items:center; gap:.4rem; margin-top:.3rem;">
+      <input id="disp" type="checkbox" name="disponivel" value="1" style="cursor:pointer;">
+      <label for="disp" style="cursor:pointer;">Somente disponíveis</label>
+    </div>
+  </div>
+  <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-top:1rem;">
+    <button class="btn" type="submit" style="background:var(--accent); color:var(--primary); font-weight:600;">🔍 Buscar</button>
+    <a class="btn" href="{% url 'catalog:advanced_search' %}">Limpar</a>
+    <a class="btn" href="{% url 'catalog:book_list' %}">Voltar à lista simples</a>
+  </div>
+</form>
+{% endblock %}

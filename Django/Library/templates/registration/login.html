@@ -7,4 +7,8 @@
     {{ form.as_p }}
     <button class="btn" type="submit">Entrar</button>
   </form>
+  <p style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap;">
+    <a class="btn" href="{% url 'password_reset' %}">Esqueci minha senha</a>
+    <a class="btn" href="{% url 'catalog:signup' %}">Criar conta</a>
+  </p>
 {% endblock %}

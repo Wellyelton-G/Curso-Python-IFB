@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Criar conta · Biblioteca{% endblock %}
+{% block content %}
+<h1>Criar conta</h1>
+<form method="post" style="max-width:420px; background:var(--card-bg); padding:1rem; border:1px solid var(--card-border); border-radius:8px;">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn" type="submit">Cadastrar</button>
+</form>
+<p style="margin-top:1rem; font-size:.85rem;" class="muted">Já tem conta? <a href="{% url 'login' %}">Entrar</a></p>
+{% endblock %}
