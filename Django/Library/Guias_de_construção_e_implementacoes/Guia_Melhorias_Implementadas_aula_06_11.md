@@ -1286,15 +1286,15 @@ Antes de considerar a implementação completa, verifique:
 
 ---
 
-## 🎉 Parabéns!
+##  Parabéns!
 
 Se chegou até aqui e todos os testes passaram, você implementou com sucesso:
 
-✅ Sistema de busca textual  
-✅ Filtro de disponibilidade  
-✅ Paginação personalizável  
-✅ Preservação de filtros  
-✅ Interface intuitiva  
+Sistema de busca textual  
+Filtro de disponibilidade  
+Paginação personalizável  
+Preservação de filtros  
+Interface intuitiva  
 
 **Próximos passos sugeridos:**
 1. Implementar ordenação dinâmica
@@ -1309,4 +1309,4 @@ Se chegou até aqui e todos os testes passaram, você implementou com sucesso:
 **Sistema:** Django 5.2.7 + Python 3.13  
 **Autor:** Guia para estudantes iniciantes  
 
-📚 **Bons estudos e bom código!** 🚀
+ **Bons estudos e bom código!** 

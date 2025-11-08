@@ -976,7 +976,7 @@ python manage.py runserver
 
 Parabéns! Você implementou todas as melhorias no sistema de biblioteca Django.
 
-**Desenvolvido em:** Novembro de 2025
-**Sistema de Biblioteca:** Django 5.2.7 + Python 3.13
-**Licença:** Educaional
-Autor: Guia para estudantes iniciantes
+
+**Desenvolvido em:** Novembro de 2025  
+**Sistema de Biblioteca:** Django 5.2.7 + Python 3.13  
+**Autor:** Wellyelton Gulberto  
