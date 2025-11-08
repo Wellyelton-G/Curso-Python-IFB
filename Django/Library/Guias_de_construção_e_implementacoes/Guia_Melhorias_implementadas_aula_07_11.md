@@ -972,7 +972,7 @@ python manage.py runserver
 
 ---
 
-## FIM DO GUIA
+## Fim do guia
 
 Parabéns! Você implementou todas as melhorias no sistema de biblioteca Django.
 
