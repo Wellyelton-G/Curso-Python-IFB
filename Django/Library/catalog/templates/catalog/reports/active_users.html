@@ -1,0 +1,7 @@
+{% extends "catalog/reports/base_report.html" %}
+{% block title %}Usuários Ativos{% endblock %}
+{% block content %}
+{% with type="active_users" %}
+	{{ block.super }}
+{% endwith %}
+{% endblock %}

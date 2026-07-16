@@ -8,7 +8,7 @@ para marcar empréstimos como devolvidos.
 from django.contrib import admin
 from django.utils import timezone
 
-from .models import Book, Loan, Category, SearchQuery
+from .models import Book, Loan, Category, SearchQuery, Review
 
 
 @admin.register(Book)
@@ -59,3 +59,25 @@ class SearchQueryAdmin(admin.ModelAdmin):
 	list_display = ("q", "user", "session_key", "created_at")
 	search_fields = ("q", "user__username", "session_key")
 	list_filter = ("created_at",)
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+	"""Admin para avaliações de livros.
+	
+	PT-BR: gerencia avaliações públicas no painel administrativo.
+	"""
+	list_display = ["book", "user", "rating", "has_comment", "created_at", "updated_at"]
+	list_filter = ["rating", "created_at"]
+	search_fields = ["book__title", "user__username", "comment"]
+	readonly_fields = ["created_at", "updated_at"]
+	date_hierarchy = "created_at"
+	
+	def has_comment(self, obj):
+		"""Indica se tem comentário."""
+		return bool(obj.comment)
+	has_comment.boolean = True
+	has_comment.short_description = "Com comentário"  # PT-BR: rótulo da coluna
+	
+	def get_queryset(self, request):
+		return super().get_queryset(request).select_related("book", "user")

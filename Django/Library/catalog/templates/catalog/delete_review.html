@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir avaliação{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+	<h2>🗑️ Confirmar exclusão</h2>
+	
+	<div class="alert alert-warning">
+		<h5>⚠️ Atenção!</h5>
+		<p class="mb-2">Tem certeza que deseja excluir sua avaliação de <strong>"{{ review.book.title }}"</strong>?</p>
+		<p class="mb-0">Nota: <span class="text-warning fw-bold">{{ review.rating }}★</span></p>
+	</div>
+
+	<form method="post">
+		{% csrf_token %}
+		<button type="submit" class="btn btn-danger">✅ Sim, excluir avaliação</button>
+		<a href="{% url 'home' %}" class="btn btn-secondary">❌ Cancelar</a>
+	</form>
+</div>
+{% endblock %}

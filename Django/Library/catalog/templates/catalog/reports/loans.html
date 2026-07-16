@@ -1,0 +1,7 @@
+{% extends "catalog/reports/base_report.html" %}
+{% block title %}Empréstimos{% endblock %}
+{% block content %}
+{% with type="loans" %}
+	{{ block.super }}
+{% endwith %}
+{% endblock %}

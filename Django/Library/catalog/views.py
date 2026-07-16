@@ -9,14 +9,16 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
-from django.db.models import Count, F, Q, Value
+from django.db.models import Avg, Count, F, Q, Value
 from django.db.models.functions import Lower
 from django.http import JsonResponse
-from django.http import Http404, HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponse, Http404, HttpRequest  # exportação de arquivos
+from django.shortcuts import render, get_object_or_404  # adicionar render
 from django.utils import timezone
 
-from .models import Book, Loan, Category, SearchQuery
+from .models import Book, Loan, Category, SearchQuery, Review
+from .forms import ReviewForm
+from .report_utils import build_report_dataset  # dados dos relatórios
 
 
 def _is_staff(user):
@@ -376,3 +378,161 @@ def admin_mark_returned(request: HttpRequest, loan_id: int) -> HttpResponse:
 		loan.mark_returned()
 		messages.success(request, f"Empréstimo de '{loan.book.title}' marcado como devolvido.")
 	return redirect("catalog:admin_overdue_loans")
+
+
+def book_detail(request, book_id):
+	"""Exibe detalhes completos de um livro com todas as avaliações públicas.
+	
+	PT-BR: página onde o usuário pode ver informações do livro e ler todas as
+	avaliações e comentários feitos por outros leitores.
+	"""
+	# PT-BR: buscar livro com anotações de avaliação
+	book = get_object_or_404(
+		Book.objects.annotate(
+			avg_rating=Avg('reviews__rating'),
+			review_count=Count('reviews', distinct=True)
+		),
+		pk=book_id
+	)
+	
+	# PT-BR: carregar todas as avaliações ordenadas por mais recentes
+	reviews = book.reviews.select_related('user').order_by('-created_at')
+	
+	# PT-BR: verificar se usuário já avaliou
+	user_review = None
+	can_review = False
+	if request.user.is_authenticated:
+		user_review = book.user_review(request.user)
+		can_review = book.user_can_review(request.user)
+	
+	context = {
+		'book': book,
+		'reviews': reviews,
+		'user_review': user_review,
+		'can_review': can_review,
+	}
+	return render(request, 'catalog/book_detail.html', context)
+
+
+@login_required
+def add_review(request, book_id):
+	"""Permite usuário avaliar livro que pegou emprestado."""
+	book = get_object_or_404(Book, pk=book_id)
+	
+	if not book.user_can_review(request.user):
+		messages.error(request, "Você precisa ter pego este livro emprestado para avaliá-lo.")
+		return redirect('catalog:book_detail', book_id=book_id)
+	
+	review = book.user_review(request.user)
+	is_editing = bool(review)
+	if not review:
+		review = Review(book=book, user=request.user)
+	
+	if request.method == "POST":
+		form = ReviewForm(request.POST, instance=review)
+		if form.is_valid():
+			form.save()
+			messages.success(request, "Avaliação salva com sucesso!")
+			return redirect('catalog:book_detail', book_id=book_id)
+	else:
+		form = ReviewForm(instance=review)
+	
+	return render(request, 'catalog/add_review.html', {
+		'form': form,
+		'book': book,
+		'is_editing': is_editing
+	})
+
+
+@login_required
+def delete_review(request, review_id):
+	"""Permite usuário deletar sua própria avaliação."""
+	review = get_object_or_404(Review, pk=review_id, user=request.user)
+	book_id = review.book.id
+	
+	if request.method == "POST":
+		review.delete()
+		messages.success(request, "Avaliação removida com sucesso!")
+		return redirect('catalog:book_detail', book_id=book_id)
+	
+	return render(request, 'catalog/delete_review.html', {'review': review})
+
+
+def _require_staff(user):
+	if not (user.is_authenticated and user.is_staff):
+		raise Http404("Relatório não disponível.")  # evita exposição
+
+@login_required
+def report_loans(request):
+	_require_staff(request.user)
+	dataset = build_report_dataset("loans")
+	return render(request, "catalog/reports/loans.html", {"dataset": dataset})
+
+@login_required
+def report_popular_books(request):
+	_require_staff(request.user)
+	dataset = build_report_dataset("popular_books")
+	return render(request, "catalog/reports/popular_books.html", {"dataset": dataset})
+
+@login_required
+def report_active_users(request):
+	_require_staff(request.user)
+	dataset = build_report_dataset("active_users")
+	return render(request, "catalog/reports/active_users.html", {"dataset": dataset})
+
+@login_required
+def report_overdue_loans(request):
+	_require_staff(request.user)
+	dataset = build_report_dataset("overdue_loans")
+	return render(request, "catalog/reports/overdue_loans.html", {"dataset": dataset})
+
+@login_required
+def report_export(request):
+	_require_staff(request.user)
+	report_type = request.GET.get("type")
+	export_format = request.GET.get("format")
+	if report_type not in {"loans", "popular_books", "active_users", "overdue_loans"}:
+		raise Http404("Tipo inválido.")
+	if export_format not in {"xlsx", "pdf"}:
+		raise Http404("Formato inválido.")
+	dataset = build_report_dataset(report_type)
+	if export_format == "xlsx":
+		from openpyxl import Workbook
+		wb = Workbook()
+		ws = wb.active
+		ws.title = dataset["title"][:31]
+		ws.append(dataset["headers"])
+		for row in dataset["rows"]:
+			ws.append(row)
+		response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		filename = f"{report_type}_{timezone.now():%Y%m%d_%H%M}.xlsx"
+		response["Content-Disposition"] = f'attachment; filename="{filename}"'
+		wb.save(response)
+		return response
+	# PDF
+	from reportlab.lib.pagesizes import A4
+	from reportlab.pdfgen import canvas
+	from reportlab.lib.units import cm
+	response = HttpResponse(content_type="application/pdf")
+	filename = f"{report_type}_{timezone.now():%Y%m%d_%H%M}.pdf"
+	response["Content-Disposition"] = f'attachment; filename="{filename}"'
+	c = canvas.Canvas(response, pagesize=A4)
+	w, h = A4
+	y = h - 2 * cm
+	c.setFont("Helvetica-Bold", 14)
+	c.drawString(2 * cm, y, dataset["title"])
+	y -= 1.2 * cm
+	c.setFont("Helvetica", 9)
+	c.drawString(2 * cm, y, " | ".join(dataset["headers"]))
+	y -= 0.7 * cm
+	for row in dataset["rows"]:
+		line = " | ".join(str(col) for col in row)
+		if y < 2 * cm:
+			c.showPage()
+			y = h - 2 * cm
+			c.setFont("Helvetica", 9)
+		c.drawString(2 * cm, y, line[:180])
+		y -= 0.55 * cm
+	c.showPage()
+	c.save()
+	return response

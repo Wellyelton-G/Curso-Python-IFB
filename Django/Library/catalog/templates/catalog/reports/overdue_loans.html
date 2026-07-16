@@ -1,0 +1,7 @@
+{% extends "catalog/reports/base_report.html" %}
+{% block title %}Empréstimos Atrasados{% endblock %}
+{% block content %}
+{% with type="overdue_loans" %}
+	{{ block.super }}
+{% endwith %}
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+	<!-- Breadcrumb -->
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+			<li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
+			<li class="breadcrumb-item active">{{ book.title }}</li>
+		</ol>
+	</nav>
+
+	<!-- Informações do Livro -->
+	<div class="row mb-5">
+		<div class="col-md-3">
+			{% if book.image %}
+				<img src="{{ book.image.url }}" alt="{{ book.title }}" class="img-fluid rounded shadow">
+			{% else %}
+				<div class="bg-secondary text-white text-center rounded shadow d-flex align-items-center justify-content-center" style="height: 400px;">
+					Sem capa
+				</div>
+			{% endif %}
+		</div>
+		<div class="col-md-9">
+			<h1>{{ book.title }}</h1>
+			<h5 class="text-muted mb-4">{{ book.author }}</h5
+			
+			<!-- Resumo de Avaliações -->
+			{% if book.avg_rating %}
+				<div class="card border-warning mb-4">
+					<div class="card-body">
+						<div class="d-flex align-items-center gap-3">
+							<div class="display-4 text-warning fw-bold">{{ book.avg_rating|floatformat:1 }}★</div>
+							<div class="flex-grow-1">
+								<div>{{ book.review_count }} avaliação{{ book.review_count|pluralize:"ões" }}</div>
+								<div class="progress mt-2" style="height: 20px;">
+									<div class="progress-bar bg-warning" style="width: {% widthratio book.avg_rating 5 100 %}%">
+										{{ book.avg_rating|floatformat:1 }}/5
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			{% endif %}
+			
+			<!-- Informações -->
+			<p><strong>ISBN:</strong> {{ book.isbn }}</p>
+			<p><strong>Disponíveis:</strong> 
+				<span class="badge {% if book.copies_available > 0 %}bg-success{% else %}bg-danger{% endif %}">
+					{{ book.copies_available }}/{{ book.copies_total }}
+				</span>
+			</p>
+			
+			<!-- Ações -->
+			<div class="d-flex gap-2">
+				{% if book.copies_available > 0 %}
+					<a href="{% url 'catalog:borrow_book' book.id %}" class="btn btn-primary">📖 Emprestar</a>
+				{% endif %}
+				{% if can_review %}
+					<a href="{% url 'catalog:add_review' book.id %}" class="btn btn-warning">
+						{% if user_review %}✏️ Editar{% else %}⭐ Avaliar{% endif %}
+					</a>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+
+	<hr>
+
+	<!-- Seção de Avaliações -->
+	<h2 class="mb-4">💬 Avaliações <span class="badge bg-secondary">{{ reviews.count }}</span></h2>
+	
+	{% if reviews %}
+		{% for review in reviews %}
+		<div class="card mb-3 {% if review.user == user %}border-primary{% endif %}">
+			<div class="card-body">
+				<div class="d-flex justify-content-between">
+					<div class="flex-grow-1">
+						<div class="d-flex align-items-center gap-2 mb-2">
+							<div class="bg-primary text-white rounded-circle text-center" style="width: 40px; height: 40px; line-height: 40px;">
+								{{ review.user.username|slice:":1"|upper }}
+							</div>
+							<div>
+								<strong>{{ review.user.username }}</strong>
+								{% if review.user == user %}<span class="badge bg-primary">Você</span>{% endif %}
+								<br><small class="text-muted">{{ review.created_at|date:"d/m/Y H:i" }}</small>
+							</div>
+						</div>
+						<div class="text-warning mb-2">
+							{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+							{{ review.rating }}/5
+						</div>
+						{% if review.comment %}
+							<div class="p-3 bg-light rounded">{{ review.comment|linebreaks }}</div>
+						{% else %}
+							<p class="text-muted fst-italic">Sem comentário</p>
+						{% endif %}
+					</div>
+					{% if user == review.user %}
+						<div class="btn-group-vertical">
+							<a href="{% url 'catalog:add_review' book.id %}" class="btn btn-sm btn-outline-secondary">✏️</a>
+							<a href="{% url 'catalog:delete_review' review.id %}" class="btn btn-sm btn-outline-danger">🗑️</a>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	{% else %}
+		<div class="alert alert-light text-center">
+			<h5>Nenhuma avaliação ainda</h5>
+			{% if can_review %}
+				<a href="{% url 'catalog:add_review' book.id %}" class="btn btn-warning mt-2">⭐ Seja o primeiro a avaliar</a>
+			{% endif %}
+		</div>
+	{% endif %}
+</div>
+{% endblock %}
