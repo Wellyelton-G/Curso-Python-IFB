@@ -1,0 +1,14 @@
+DIAGRAMA TEXTUAL
+
+Pessoa [abstrata]
+  ├── Aluno
+  ├── Professor
+  └── Coordenador
+
+Curso agrega várias Disciplina.
+Turma relaciona uma Disciplina, um Professor e várias Matricula.
+Matricula associa um Aluno a uma Turma.
+Matricula contém avaliações e uma frequência.
+HistoricoEscolar depende das matrículas do Aluno para gerar o relatório.
+Coordenador cria Curso, Disciplina e Turma.
+Professor registra notas e frequências somente nas próprias turmas.
