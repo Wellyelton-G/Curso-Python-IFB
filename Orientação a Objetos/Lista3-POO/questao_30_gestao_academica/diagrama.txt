@@ -6,19 +6,19 @@ Pessoa <<abstrata>>
   |-- Professor
   `-- Coordenador
 
-Coordenador ..cria..> Curso, Disciplina e Turma       (dependência)
-Curso 1 o------ 1..* Disciplina                        (agregação)
-Turma * -------- 1 Disciplina                          (associação)
-Turma * -------- 1 Professor                           (associação)
-Turma 1 *------ 0..* Matricula                         (composição)
-Aluno 1 -------- 0..* Matricula                        (associação)
-Matricula 1 *--- 0..* Avaliacao                        (composição)
-Matricula 1 *--- 1 Frequencia                          (composição)
-HistoricoEscolar ..usa..> Aluno e suas Matricula       (dependência)
+Coordenador ..cria..> Curso, Disciplina e Turma       (dependencia)
+Curso 1 o------ 1..* Disciplina                        (agregacao)
+Turma * -------- 1 Disciplina                          (associacao)
+Turma * -------- 1 Professor                           (associacao)
+Turma 1 *------ 0..* Matricula                         (composicao)
+Aluno 1 -------- 0..* Matricula                        (associacao)
+Matricula 1 *--- 0..* Avaliacao                        (composicao)
+Matricula 1 *--- 1 Frequencia                          (composicao)
+HistoricoEscolar ..usa..> Aluno e suas Matricula       (dependencia)
 
 Regras principais:
-- Pessoa é abstrata; Aluno, Professor e Coordenador implementam descricao().
+- Pessoa e abstrata; as subclasses implementam descricao() (polimorfismo).
 - O professor registra dados somente nas turmas que leciona.
-- Frequência abaixo de 75% resulta em reprovação por falta.
-- Com frequência suficiente, média ponderada >= 6,0 resulta em aprovação.
-- A matrícula acadêmica do aluno é única em todo o sistema.
+- Frequencia abaixo de 75% resulta em reprovacao por falta.
+- Com frequencia suficiente, media ponderada >= 6,0 resulta em aprovacao.
+- A matricula academica do aluno e unica em todo o sistema.

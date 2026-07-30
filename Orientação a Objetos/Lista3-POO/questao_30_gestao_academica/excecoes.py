@@ -1,8 +1,8 @@
-"""Exceções específicas do sistema acadêmico."""
+"""Excecoes especificas do sistema academico."""
 
 
 class SistemaAcademicoError(Exception):
-    """Classe-base para erros previstos pela aplicação."""
+    """Classe-base para erros previstos pela aplicacao."""
 
 
 class MatriculaDuplicadaError(SistemaAcademicoError):
