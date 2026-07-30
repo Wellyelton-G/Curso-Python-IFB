@@ -1,14 +1,24 @@
-DIAGRAMA TEXTUAL
+DIAGRAMA TEXTUAL DE CLASSES
+===========================
 
-Pessoa [abstrata]
-  ├── Aluno
-  ├── Professor
-  └── Coordenador
+Pessoa <<abstrata>>
+  |-- Aluno
+  |-- Professor
+  `-- Coordenador
 
-Curso agrega várias Disciplina.
-Turma relaciona uma Disciplina, um Professor e várias Matricula.
-Matricula associa um Aluno a uma Turma.
-Matricula contém avaliações e uma frequência.
-HistoricoEscolar depende das matrículas do Aluno para gerar o relatório.
-Coordenador cria Curso, Disciplina e Turma.
-Professor registra notas e frequências somente nas próprias turmas.
+Coordenador ..cria..> Curso, Disciplina e Turma       (dependência)
+Curso 1 o------ 1..* Disciplina                        (agregação)
+Turma * -------- 1 Disciplina                          (associação)
+Turma * -------- 1 Professor                           (associação)
+Turma 1 *------ 0..* Matricula                         (composição)
+Aluno 1 -------- 0..* Matricula                        (associação)
+Matricula 1 *--- 0..* Avaliacao                        (composição)
+Matricula 1 *--- 1 Frequencia                          (composição)
+HistoricoEscolar ..usa..> Aluno e suas Matricula       (dependência)
+
+Regras principais:
+- Pessoa é abstrata; Aluno, Professor e Coordenador implementam descricao().
+- O professor registra dados somente nas turmas que leciona.
+- Frequência abaixo de 75% resulta em reprovação por falta.
+- Com frequência suficiente, média ponderada >= 6,0 resulta em aprovação.
+- A matrícula acadêmica do aluno é única em todo o sistema.
