@@ -1,3 +1,6 @@
+"""Questao 7: uma Agenda armazena e consulta varios objetos Contato."""
+
+
 class Contato:
     def __init__(self, nome, telefone, email):
         self.nome = nome
@@ -5,6 +8,7 @@ class Contato:
         self.email = email
 
     def __str__(self):
+        # __str__ define como o contato aparece quando usamos print(contato).
         return f"{self.nome} | {self.telefone} | {self.email}"
 
 
@@ -25,6 +29,7 @@ class Agenda:
             print(contato)
 
     def buscar_contato(self, nome):
+        # lower permite comparar sem diferenciar maiusculas de minusculas.
         for contato in self.contatos:
             if contato.nome.lower() == nome.lower():
                 return contato

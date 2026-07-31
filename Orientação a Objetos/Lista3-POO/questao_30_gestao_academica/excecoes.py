@@ -5,6 +5,8 @@ class SistemaAcademicoError(Exception):
     """Classe-base para erros previstos pela aplicacao."""
 
 
+# Ter uma excecao para cada tipo de problema permite que outras camadas do
+# programa tratem os erros sem depender do texto de suas mensagens.
 class MatriculaDuplicadaError(SistemaAcademicoError):
     pass
 

@@ -1,4 +1,9 @@
-"""Menu interativo do sistema de gestao academica."""
+"""Camada de apresentacao: menu interativo do sistema academico.
+
+Este arquivo conversa com o usuario, mas delega regras para modelos.py e o
+acesso ao JSON para persistencia.py. Essa divisao e conhecida como separacao
+de responsabilidades.
+"""
 
 from pathlib import Path
 
@@ -11,6 +16,7 @@ ARQUIVO_DADOS = Path(__file__).with_name("dados_academicos.json")
 
 
 def ler(texto):
+    """Le uma entrada obrigatoria e centraliza a validacao de campo vazio."""
     valor = input(texto).strip()
     if not valor:
         raise ValueError("O campo nao pode ficar vazio.")
@@ -18,6 +24,7 @@ def ler(texto):
 
 
 def cadastrar_pessoa(sistema):
+    # O mesmo fluxo chama metodos diferentes conforme o tipo escolhido.
     print("\n1. Aluno  2. Professor  3. Coordenador")
     tipo = ler("Tipo: ")
     nome = ler("Nome: ")
@@ -55,6 +62,7 @@ def criar_disciplina(sistema):
 
 
 def associar_disciplina(sistema):
+    # Exigir um coordenador nesta operacao evidencia a permissao de gestao.
     sistema.obter(
         sistema.coordenadores, ler("Registro do coordenador: "), "Coordenador"
     )
@@ -95,6 +103,8 @@ def registrar_nota(sistema):
     turma = sistema.obter(sistema.turmas, ler("Codigo da turma: "), "Turma")
     aluno = sistema.obter(sistema.alunos, ler("Matricula do aluno: "), "Aluno")
     descricao = ler("Descricao da avaliacao: ")
+    # A nota e registrada pelo objeto Professor, e nao diretamente na turma.
+    # Assim, a regra "somente em sua propria turma" nao e ignorada pelo menu.
     professor.registrar_nota(
         turma, aluno, float(ler("Nota (0 a 10): ")), descricao, float(ler("Peso: "))
     )
@@ -117,6 +127,8 @@ def exibir_historico(sistema):
 
 
 def listar_cadastros(sistema):
+    # Todas as subclasses respondem a descricao(), cada uma a sua maneira:
+    # este e um exemplo pratico de polimorfismo.
     print("\nALUNOS")
     for pessoa in sistema.alunos.values():
         print("-", pessoa.descricao())
@@ -154,11 +166,17 @@ def mostrar_menu():
 
 
 def menu():
+    """Mantem o laco principal ate o usuario escolher salvar e sair."""
+
+    # __file__ faz o JSON ficar ao lado do programa, independentemente da pasta
+    # a partir da qual o comando "python main.py" tenha sido executado.
     repositorio = RepositorioAcademico(ARQUIVO_DADOS)
     sistema, aviso = repositorio.carregar()
     if aviso:
         print("Aviso:", aviso)
 
+    # O dicionario substitui uma longa sequencia de if/elif: cada opcao aponta
+    # para uma funcao. Funcoes tambem podem ser armazenadas como valores Python.
     acoes = {
         "1": cadastrar_pessoa,
         "2": criar_curso,
@@ -186,6 +204,7 @@ def menu():
                 acoes[opcao](sistema)
             else:
                 print("Opcao invalida.")
+        # Erros esperados sao apresentados sem exibir um traceback tecnico.
         except (SistemaAcademicoError, ValueError) as erro:
             print("Erro:", erro)
         except (EOFError, KeyboardInterrupt):

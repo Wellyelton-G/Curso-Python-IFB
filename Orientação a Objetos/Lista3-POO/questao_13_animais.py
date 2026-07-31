@@ -1,9 +1,13 @@
+"""Questao 13: heranca, sobrescrita e polimorfismo."""
+
+
 class Animal:
     def __init__(self, nome, idade):
         self.nome = nome
         self.idade = idade
 
     def emitir_som(self):
+        # A classe-base exige que as subclasses fornecam o som concreto.
         raise NotImplementedError("A subclasse deve implementar emitir_som().")
 
 

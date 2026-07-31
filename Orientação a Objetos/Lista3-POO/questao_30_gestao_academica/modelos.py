@@ -1,4 +1,10 @@
-"""Modelo de dominio do sistema de gestao academica."""
+"""Modelo de dominio do sistema de gestao academica.
+
+Este modulo concentra as classes que representam o problema real. Em POO,
+chamamos isso de "modelo de dominio": Aluno representa um aluno, Turma
+representa uma turma e assim por diante. O menu e o arquivo JSON ficam em
+outros modulos para que cada parte do programa tenha uma responsabilidade.
+"""
 
 from abc import ABC, abstractmethod
 
@@ -12,29 +18,43 @@ from excecoes import (
 )
 
 
+# ---------------------------------------------------------------------------
+# HERANCA, ABSTRACAO, ENCAPSULAMENTO E POLIMORFISMO
+# ---------------------------------------------------------------------------
+
+
 class Pessoa(ABC):
     """Abstracao comum: por possuir metodo abstrato, nao pode ser instanciada."""
 
     def __init__(self, nome):
+        # A validacao fica na classe-base para nao ser repetida nas subclasses.
         if not str(nome).strip():
             raise DadosInvalidosError("O nome nao pode ficar vazio.")
-        self._nome = str(nome).strip()  # encapsulamento
+        # Um sublinhado indica atributo protegido por convencao em Python.
+        self._nome = str(nome).strip()
 
     @property
     def nome(self):
+        # A property oferece acesso controlado sem expor diretamente o atributo.
         return self._nome
 
     @abstractmethod
     def descricao(self):
-        """Exemplo de polimorfismo nas subclasses."""
+        """Contrato que cada tipo de pessoa deve implementar.
+
+        Como cada subclasse responde de uma forma diferente ao mesmo metodo,
+        temos polimorfismo.
+        """
 
 
 class Aluno(Pessoa):
     def __init__(self, nome, matricula):
         super().__init__(nome)
+        # Dois sublinhados tornam o atributo privado por name mangling.
         self.__matricula = str(matricula).strip()
         if not self.__matricula:
             raise DadosInvalidosError("A matricula nao pode ficar vazia.")
+        # Associacao: um aluno pode participar de varias matriculas em turmas.
         self.matriculas_turmas = []
 
     @property
@@ -55,12 +75,14 @@ class Professor(Pessoa):
         return f"Professor: {self.nome} ({self.registro})"
 
     def _verificar_turma(self, turma):
+        # Esta verificacao implementa a regra de autorizacao do requisito 9.
         if turma.professor is not self or turma not in self.turmas:
             raise PermissaoNegadaError(
                 "O professor so pode registrar dados em suas proprias turmas."
             )
 
     def registrar_nota(self, turma, aluno, nota, descricao="Avaliacao", peso=1):
+        # O Professor depende da Turma para localizar a matricula do aluno.
         self._verificar_turma(turma)
         turma.localizar_matricula(aluno).adicionar_avaliacao(nota, descricao, peso)
 
@@ -78,6 +100,8 @@ class Coordenador(Pessoa):
         return f"Coordenador: {self.nome} ({self.registro})"
 
     def criar_curso(self, codigo, nome):
+        # Estes metodos demonstram dependencia: o coordenador usa outras
+        # classes para criar objetos, mas nao e dono permanente deles.
         return Curso(codigo, nome)
 
     def criar_disciplina(self, codigo, nome, carga_horaria):
@@ -85,6 +109,11 @@ class Coordenador(Pessoa):
 
     def criar_turma(self, codigo, disciplina, professor):
         return Turma(codigo, disciplina, professor)
+
+
+# ---------------------------------------------------------------------------
+# ENTIDADES ACADEMICAS E SEUS RELACIONAMENTOS
+# ---------------------------------------------------------------------------
 
 
 class Disciplina:
@@ -107,6 +136,7 @@ class Curso:
             raise DadosInvalidosError("Dados do curso invalidos.")
 
     def adicionar_disciplina(self, disciplina):
+        # Agregacao: a disciplina pode continuar existindo sem este curso.
         if any(item.codigo == disciplina.codigo for item in self.disciplinas):
             raise CadastroDuplicadoError("Disciplina ja adicionada ao curso.")
         self.disciplinas.append(disciplina)
@@ -114,6 +144,7 @@ class Curso:
 
 class Avaliacao:
     def __init__(self, valor, descricao="Avaliacao", peso=1):
+        # Converter aqui permite receber tanto inteiros quanto numeros decimais.
         self.valor = float(valor)
         self.descricao = str(descricao).strip() or "Avaliacao"
         self.peso = float(peso)
@@ -134,6 +165,8 @@ class Matricula:
     """Compoe avaliacoes e frequencia; liga um aluno a uma turma."""
 
     def __init__(self, aluno, turma):
+        # A Matricula funciona como elo entre Aluno e Turma e guarda os dados
+        # que pertencem especificamente a esse vinculo.
         self.aluno = aluno
         self.turma = turma
         self.avaliacoes = []
@@ -147,13 +180,18 @@ class Matricula:
 
     @property
     def media_final(self):
+        # Property faz a media parecer um atributo, embora seja sempre
+        # recalculada. Assim ela nunca fica desatualizada apos uma nova nota.
         if not self.avaliacoes:
             return 0.0
         total_pesos = sum(item.peso for item in self.avaliacoes)
+        # Media ponderada: cada nota e multiplicada por seu respectivo peso.
         return sum(item.valor * item.peso for item in self.avaliacoes) / total_pesos
 
     @property
     def situacao(self):
+        # A frequencia vem primeiro porque a falta reprova independentemente
+        # da media obtida pelo estudante.
         if self.frequencia.percentual < 75:
             return "Reprovado por falta"
         return "Aprovado" if self.media_final >= 6 else "Reprovado por nota"
@@ -164,9 +202,11 @@ class Turma:
         self.codigo = str(codigo).strip()
         self.disciplina = disciplina
         self.professor = professor
-        self.matriculas = []  # composicao: pertencem a esta turma
+        # Composicao: estas matriculas representam vinculos desta turma.
+        self.matriculas = []
         if not self.codigo:
             raise DadosInvalidosError("O codigo da turma nao pode ficar vazio.")
+        # A mesma associacao e registrada nos dois sentidos, facilitando buscas.
         professor.turmas.append(self)
 
     @property
@@ -174,6 +214,7 @@ class Turma:
         return [matricula.aluno for matricula in self.matriculas]
 
     def matricular_aluno(self, aluno):
+        # Antes de criar o objeto, impedimos dois vinculos iguais na turma.
         if aluno in self.alunos:
             raise MatriculaDuplicadaError("Aluno ja matriculado nesta turma.")
         matricula = Matricula(aluno, self)
@@ -195,6 +236,8 @@ class HistoricoEscolar:
         self.aluno = aluno
 
     def gerar(self):
+        # O historico nao armazena copias das notas. Ele consulta os objetos
+        # atuais, evitando informacoes duplicadas ou inconsistentes.
         linhas = [f"Historico escolar - {self.aluno.nome} ({self.aluno.matricula})"]
         if not self.aluno.matriculas_turmas:
             linhas.append("Nenhuma disciplina cursada.")
@@ -208,10 +251,17 @@ class HistoricoEscolar:
         return "\n".join(linhas)
 
 
+# ---------------------------------------------------------------------------
+# FACHADA DO SISTEMA
+# ---------------------------------------------------------------------------
+
+
 class SistemaAcademico:
     """Fachada que mantem os cadastros e garante codigos unicos."""
 
     def __init__(self):
+        # Dicionarios tornam a busca por codigo direta e tambem ajudam a
+        # garantir unicidade. A chave e o identificador unico de cada objeto.
         self.alunos = {}
         self.professores = {}
         self.coordenadores = {}
@@ -221,12 +271,15 @@ class SistemaAcademico:
 
     @staticmethod
     def _adicionar(colecao, chave, objeto, mensagem):
+        # Metodo auxiliar evita repetir a mesma verificacao em cada cadastro.
         if chave in colecao:
             raise CadastroDuplicadoError(mensagem)
         colecao[chave] = objeto
         return objeto
 
     def cadastrar_aluno(self, nome, matricula):
+        # A unicidade e responsabilidade do sistema, pois ele conhece todos os
+        # alunos cadastrados; um Aluno isolado nao possui essa visao global.
         chave = str(matricula).strip()
         if chave in self.alunos:
             raise MatriculaDuplicadaError("A matricula do aluno deve ser unica.")
@@ -257,6 +310,8 @@ class SistemaAcademico:
 
     @staticmethod
     def obter(colecao, chave, tipo):
+        # Traduzimos KeyError, que e tecnico, para uma excecao compreensivel no
+        # contexto academico. O "from erro" preserva a causa original.
         try:
             return colecao[str(chave).strip()]
         except KeyError as erro:

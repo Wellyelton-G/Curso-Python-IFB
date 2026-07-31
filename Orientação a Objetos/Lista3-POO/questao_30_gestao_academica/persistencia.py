@@ -1,4 +1,9 @@
-"""Persistencia JSON do sistema academico."""
+"""Persistencia JSON do sistema academico.
+
+Objetos Python nao podem ser gravados diretamente em JSON. Por isso, este
+repositorio transforma o grafo de objetos em dicionarios/listas ao salvar e
+refaz os objetos e seus relacionamentos ao carregar.
+"""
 
 import json
 import os
@@ -20,14 +25,25 @@ from modelos import (
 
 
 class RepositorioAcademico:
+    """Separa o acesso a arquivos das regras academicas.
+
+    Essa separacao facilita trocar o JSON por um banco de dados no futuro sem
+    alterar Aluno, Professor, Curso e as demais classes do dominio.
+    """
+
     def __init__(self, arquivo="dados_academicos.json"):
         self.arquivo = Path(arquivo)
 
     def salvar(self, sistema):
+        # Primeiro convertemos referencias entre objetos em identificadores que
+        # o formato JSON consegue representar (strings, numeros, listas etc.).
         dados = self._para_dict(sistema)
         self.arquivo.parent.mkdir(parents=True, exist_ok=True)
         nome_temporario = None
         try:
+            # Gravacao atomica: escreve-se primeiro em um arquivo temporario.
+            # Somente depois de concluir ele substitui o arquivo definitivo.
+            # Isso reduz o risco de corrupcao se o programa for interrompido.
             with tempfile.NamedTemporaryFile(
                 "w", encoding="utf-8", delete=False, dir=self.arquivo.parent
             ) as temporario:
@@ -37,6 +53,7 @@ class RepositorioAcademico:
                 nome_temporario = temporario.name
             os.replace(nome_temporario, self.arquivo)
         except OSError as erro:
+            # Se algo falhar, tentamos remover apenas o temporario incompleto.
             if nome_temporario:
                 try:
                     Path(nome_temporario).unlink(missing_ok=True)
@@ -45,16 +62,22 @@ class RepositorioAcademico:
             raise ArquivoDadosError(f"Nao foi possivel salvar os dados: {erro}") from erro
 
     def carregar(self):
+        # Um arquivo inexistente e normal na primeira execucao, portanto o
+        # programa comeca com um sistema vazio em vez de encerrar com erro.
         if not self.arquivo.exists():
             return SistemaAcademico(), "Arquivo ainda nao existe; iniciado cadastro vazio."
         try:
             dados = json.loads(self.arquivo.read_text(encoding="utf-8"))
             return self._de_dict(dados), None
         except (json.JSONDecodeError, KeyError, TypeError, ValueError, OSError) as erro:
+            # JSON malformado, campos ausentes e erros de leitura sao tratados
+            # de modo uniforme. O aviso informa o usuario sobre o ocorrido.
             return SistemaAcademico(), f"Arquivo corrompido ou invalido; iniciado cadastro vazio: {erro}"
 
     @staticmethod
     def _para_dict(sistema):
+        # Em vez de salvar um Professor inteiro dentro de cada Turma, salvamos
+        # seu registro. Isso evita duplicacao e referencias circulares no JSON.
         return {
             "versao": 1,
             "alunos": [
@@ -104,10 +127,13 @@ class RepositorioAcademico:
 
     @staticmethod
     def _de_dict(dados):
+        # A versao permite detectar arquivos de um formato antigo ou futuro.
         if dados.get("versao") != 1:
             raise ValueError("Versao do arquivo nao suportada")
         sistema = SistemaAcademico()
 
+        # A ordem de reconstrucao e importante: primeiro criamos os objetos
+        # independentes; depois, os que precisam fazer referencia a eles.
         for item in dados["alunos"]:
             aluno = Aluno(item["nome"], item["matricula"])
             sistema.alunos[aluno.matricula] = aluno
@@ -121,11 +147,14 @@ class RepositorioAcademico:
             disciplina = Disciplina(item["codigo"], item["nome"], item["carga_horaria"])
             sistema.disciplinas[disciplina.codigo] = disciplina
         for item in dados["cursos"]:
+            # Os codigos gravados no JSON sao convertidos novamente em
+            # referencias aos objetos Disciplina mantidos pelo sistema.
             curso = Curso(item["codigo"], item["nome"])
             for codigo in item["disciplinas"]:
                 curso.adicionar_disciplina(sistema.disciplinas[codigo])
             sistema.cursos[curso.codigo] = curso
         for item in dados["turmas"]:
+            # Turmas dependem de disciplinas e professores ja reconstruidos.
             turma = Turma(
                 item["codigo"],
                 sistema.disciplinas[item["disciplina"]],
@@ -133,6 +162,8 @@ class RepositorioAcademico:
             )
             sistema.turmas[turma.codigo] = turma
             for dados_matricula in item["matriculas"]:
+                # matricular_aluno atualiza tanto a Turma quanto o Aluno,
+                # restaurando corretamente a associacao bidirecional.
                 matricula = turma.matricular_aluno(
                     sistema.alunos[dados_matricula["aluno"]]
                 )

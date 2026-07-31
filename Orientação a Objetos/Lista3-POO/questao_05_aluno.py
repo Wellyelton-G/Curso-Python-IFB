@@ -1,3 +1,6 @@
+"""Questao 5: encapsulamento de validacao e da regra academica."""
+
+
 class Aluno:
     """Calcula a média e determina a situação acadêmica."""
 
@@ -8,6 +11,7 @@ class Aluno:
 
     @staticmethod
     def _validar_nota(nota):
+        # staticmethod e adequado porque a validacao nao usa self.
         if not 0 <= nota <= 10:
             raise ValueError("A nota deve estar entre 0 e 10.")
         return nota
@@ -16,6 +20,7 @@ class Aluno:
         return (self.nota1 + self.nota2) / 2
 
     def verificar_situacao(self):
+        # Testamos da maior faixa para a menor, evitando condicoes sobrepostas.
         media = self.calcular_media()
         if media >= 6:
             return "Aprovado"

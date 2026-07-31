@@ -1,3 +1,5 @@
+"""Questao 19: Strategy para trocar a forma de pagamento."""
+
 from abc import ABC, abstractmethod
 
 
@@ -18,6 +20,7 @@ class Carrinho:
         return sum(produto.preco for produto in self.produtos)
 
     def finalizar_compra(self, forma_pagamento):
+        # Carrinho depende apenas do contrato pagar(), nao de uma classe concreta.
         return forma_pagamento.pagar(self.calcular_total())
 
 
@@ -29,6 +32,7 @@ class FormaPagamento(ABC):
 
 class PagamentoDinheiro(FormaPagamento):
     def pagar(self, valor):
+        # Multiplicar por 0,95 equivale a descontar 5%.
         return valor * 0.95
 
 

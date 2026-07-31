@@ -1,3 +1,6 @@
+"""Questao 2: exemplo de estado (medidas) e comportamento (calculos)."""
+
+
 class Retangulo:
     """Calcula área e perímetro de um retângulo."""
 
@@ -8,9 +11,11 @@ class Retangulo:
         self.altura = altura
 
     def calcular_area(self):
+        # O metodo usa o estado do proprio objeto; nao precisa receber medidas.
         return self.base * self.altura
 
     def calcular_perimetro(self):
+        # Perimetro e a soma dos quatro lados: duas bases e duas alturas.
         return 2 * (self.base + self.altura)
 
     def exibir_dados(self):

@@ -1,3 +1,5 @@
+"""Questao 20: chamado encapsulado com historico de alteracoes."""
+
 from datetime import datetime
 
 
@@ -28,6 +30,7 @@ class Chamado:
         self._registrar("Chamado aberto.")
 
     def _registrar(self, texto):
+        # Centralizar o registro garante o mesmo formato em todo o historico.
         self.historico.append(f"{datetime.now():%d/%m/%Y %H:%M:%S} | {texto}")
 
     def atribuir_tecnico(self, tecnico):
@@ -52,6 +55,7 @@ class Chamado:
 
     @property
     def status(self):
+        # O status privado pode ser lido, mas suas mudancas passam pelos metodos.
         return self.__status
 
 

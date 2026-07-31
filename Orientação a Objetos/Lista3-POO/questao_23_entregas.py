@@ -1,3 +1,5 @@
+"""Questao 23: entregas polimorficas e maquina de estados do pedido."""
+
 from abc import ABC, abstractmethod
 
 
@@ -84,6 +86,7 @@ class Pedido:
         self.estado = self.ESTADOS[0]
 
     def avancar_estado(self, novo_estado):
+        # Uma maquina de estados permite somente a proxima etapa da sequencia.
         atual = self.ESTADOS.index(self.estado)
         esperado = atual + 1
         if esperado >= len(self.ESTADOS) or self.ESTADOS[esperado] != novo_estado:
@@ -93,6 +96,7 @@ class Pedido:
 
 class Transportadora:
     def calcular(self, pedido):
+        # A transportadora delega a formula ao tipo concreto de Entrega.
         regiao = pedido.cliente.endereco.regiao
         return pedido.entrega.calcular_frete(pedido.peso, pedido.distancia, regiao)
 

@@ -1,3 +1,6 @@
+"""Questao 11: associacao entre produto, item e pedido."""
+
+
 class Produto:
     def __init__(self, nome, preco):
         self.nome = nome
@@ -12,6 +15,7 @@ class ItemPedido:
         self.quantidade = quantidade
 
     def subtotal(self):
+        # Cada item sabe calcular somente a parte do total que lhe corresponde.
         return self.produto.preco * self.quantidade
 
 
@@ -21,6 +25,7 @@ class Pedido:
         self.finalizado = False
 
     def adicionar_item(self, item):
+        # Esta regra protege o pedido mesmo se ele for usado sem uma interface.
         if self.finalizado:
             raise RuntimeError("O pedido já foi finalizado.")
         self.itens.append(item)
@@ -39,6 +44,7 @@ class Pedido:
             print(f"{item.produto.nome} x {item.quantidade}: R$ {item.subtotal():.2f}")
 
     def calcular_total(self):
+        # sum percorre os itens e combina seus subtotais.
         return sum(item.subtotal() for item in self.itens)
 
     def finalizar(self):

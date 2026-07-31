@@ -1,3 +1,6 @@
+"""Questao 4: as regras de preco ficam junto ao objeto Produto."""
+
+
 class Produto:
     """Representa um produto com percentual de desconto."""
 
@@ -11,9 +14,11 @@ class Produto:
         self.percentual_desconto = percentual_desconto
 
     def calcular_desconto(self):
+        # Dividir por 100 transforma o percentual em uma proporcao decimal.
         return self.preco * self.percentual_desconto / 100
 
     def calcular_preco_final(self):
+        # Reutilizar calcular_desconto evita duplicar a mesma formula.
         return self.preco - self.calcular_desconto()
 
     def exibir_resumo(self):

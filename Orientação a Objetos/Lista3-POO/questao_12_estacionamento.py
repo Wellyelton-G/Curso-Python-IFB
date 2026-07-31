@@ -1,3 +1,5 @@
+"""Questao 12: associacao, dicionarios e calculo com datas."""
+
 from datetime import datetime
 from math import ceil
 
@@ -27,11 +29,13 @@ class Estacionamento:
         veiculo = self.veiculos.pop(placa)
         saida = horario_saida or datetime.now()
         segundos = (saida - veiculo.horario_entrada).total_seconds()
+        # ceil arredonda qualquer fracao para a proxima hora cobrada.
         horas_cobradas = max(1, ceil(segundos / 3600))
         valor = horas_cobradas * self.VALOR_HORA
         return veiculo, horas_cobradas, valor
 
     def listar_veiculos(self):
+        # values() devolve os objetos armazenados por placa no dicionario.
         for veiculo in self.veiculos.values():
             print(f"{veiculo.placa} | {veiculo.modelo} | {veiculo.horario_entrada:%d/%m/%Y %H:%M}")
 

@@ -1,3 +1,6 @@
+"""Questao 17: filmes e series tratados por uma interface comum."""
+
+
 class Conteudo:
     def __init__(self, titulo, genero, duracao):
         self.titulo = titulo
@@ -5,6 +8,7 @@ class Conteudo:
         self.duracao = duracao
 
     def exibir_detalhes(self):
+        # A classe-base define a operacao; as subclasses definem o resultado.
         raise NotImplementedError
 
 
@@ -37,4 +41,5 @@ if __name__ == "__main__":
     ]
 
     for conteudo in catalogo:
+        # Polimorfismo: nao precisamos testar se e Filme ou Serie.
         print(conteudo.exibir_detalhes())

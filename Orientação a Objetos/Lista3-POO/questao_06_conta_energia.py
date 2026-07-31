@@ -1,3 +1,6 @@
+"""Questao 6: validacao no construtor impede objetos em estado invalido."""
+
+
 class ContaEnergia:
     """Calcula o valor de uma conta de energia elétrica."""
 
@@ -11,6 +14,7 @@ class ContaEnergia:
         self.valor_kwh = valor_kwh
 
     def calcular_total(self):
+        # O consumo em kWh multiplicado pela tarifa resulta no valor da conta.
         return self.consumo_kwh * self.valor_kwh
 
     def exibir_dados(self):

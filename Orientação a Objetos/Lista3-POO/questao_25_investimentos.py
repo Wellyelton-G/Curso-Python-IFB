@@ -1,3 +1,5 @@
+"""Questao 25: carteira calculada por polimorfismo de investimentos."""
+
 from abc import ABC, abstractmethod
 
 
@@ -80,12 +82,14 @@ class CarteiraInvestimentos:
         return sum(i.valor for i in self.investimentos)
 
     def rendimentos(self):
+        # A mesma chamada executa formulas diferentes conforme cada subclasse.
         return sum(i.calcular_rendimento() for i in self.investimentos)
 
     def impostos(self):
         return sum(i.calcular_imposto() for i in self.investimentos)
 
     def distribuicao(self):
+        # A divisao pelo patrimonio transforma cada valor em percentual.
         total = self.patrimonio_total()
         return {i.nome: (i.valor / total * 100 if total else 0) for i in self.investimentos}
 

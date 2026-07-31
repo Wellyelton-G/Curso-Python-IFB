@@ -1,9 +1,12 @@
+"""Questao 18: dependencia de uma abstracao em vez de classes concretas."""
+
 from abc import ABC, abstractmethod
 
 
 class Notificador(ABC):
     @abstractmethod
     def enviar(self, mensagem):
+        # Este contrato permite criar novos canais sem alterar a funcao cliente.
         pass
 
 

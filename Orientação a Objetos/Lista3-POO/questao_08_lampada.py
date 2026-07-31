@@ -1,3 +1,6 @@
+"""Questao 8: os metodos controlam as mudancas de estado da lampada."""
+
+
 class Lampada:
     def __init__(self, cor, potencia):
         self.cor = cor
@@ -5,6 +8,7 @@ class Lampada:
         self.ligada = False
 
     def ligar(self):
+        # A guarda evita repetir uma operacao que nao mudaria o estado.
         if self.ligada:
             print("A lâmpada já está ligada.")
             return
@@ -19,6 +23,7 @@ class Lampada:
         print("Lâmpada desligada.")
 
     def mostrar_estado(self):
+        # A expressao condicional converte o booleano em texto amigavel.
         estado = "ligada" if self.ligada else "desligada"
         print(f"Lâmpada {self.cor}, {self.potencia} W, está {estado}.")
 

@@ -1,3 +1,6 @@
+"""Questao 15: encapsulamento, agregacao e excecoes de negocio."""
+
+
 class EstoqueInsuficienteError(Exception):
     pass
 
@@ -11,6 +14,7 @@ class Produto:
 
     @property
     def quantidade(self):
+        # A property permite consultar sem permitir atribuicao direta comum.
         return self.__quantidade
 
     def adicionar(self, unidades):
@@ -19,6 +23,9 @@ class Produto:
         self.__quantidade += unidades
 
     def retirar(self, unidades):
+        if unidades <= 0:
+            raise ValueError("As unidades devem ser positivas.")
+        # Uma excecao especifica diferencia falta de estoque de outros erros.
         if unidades > self.__quantidade:
             raise EstoqueInsuficienteError("Quantidade solicitada maior que o estoque disponível.")
         self.__quantidade -= unidades
@@ -40,6 +47,7 @@ class Estoque:
         return self.produtos.get(codigo)
 
     def listar_baixo_estoque(self):
+        # A compreensao cria uma nova lista apenas com itens abaixo do limite.
         return [p for p in self.produtos.values() if p.quantidade < 5]
 
     def calcular_valor_total(self):

@@ -1,3 +1,6 @@
+"""Questao 9: encapsulamento do salario e alteracao por metodo controlado."""
+
+
 class Funcionario:
     def __init__(self, nome, cargo, salario):
         if salario < 0:
@@ -9,6 +12,7 @@ class Funcionario:
     def aplicar_reajuste(self, percentual):
         if percentual < 0:
             raise ValueError("O percentual não pode ser negativo.")
+        # O novo salario e o antigo multiplicado por 1 mais a taxa decimal.
         self.__salario *= 1 + percentual / 100
 
     def get_salario(self):

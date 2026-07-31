@@ -1,3 +1,6 @@
+"""Questao 1: introducao a classes, objetos, atributos e metodos."""
+
+
 class Pessoa:
     """Representa uma pessoa com nome, idade e cidade."""
 

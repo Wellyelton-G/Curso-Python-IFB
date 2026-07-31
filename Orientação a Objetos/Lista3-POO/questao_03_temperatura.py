@@ -1,3 +1,6 @@
+"""Questao 3: um objeto pode oferecer diferentes visoes do mesmo valor."""
+
+
 class Temperatura:
     """Armazena uma temperatura em Celsius e realiza conversões."""
 
@@ -5,9 +8,11 @@ class Temperatura:
         self.celsius = celsius
 
     def para_fahrenheit(self):
+        # A conversao nao altera Celsius; apenas devolve um valor calculado.
         return self.celsius * 1.8 + 32
 
     def para_kelvin(self):
+        # Kelvin usa a mesma escala de variacao, deslocada em 273,15.
         return self.celsius + 273.15
 
     def exibir_valores(self):

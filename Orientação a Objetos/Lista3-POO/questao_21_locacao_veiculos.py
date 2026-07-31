@@ -1,3 +1,5 @@
+"""Questao 21: locacao com abstracao, polimorfismo e excecoes."""
+
 from abc import ABC, abstractmethod
 from datetime import date
 
@@ -23,6 +25,7 @@ class Veiculo(ABC):
 
     @abstractmethod
     def calcular_diaria(self):
+        # Cada categoria concretiza uma politica diferente de preco.
         pass
 
 
@@ -89,10 +92,13 @@ class Agencia:
         self.clientes[cliente.documento] = cliente
 
     def realizar_locacao(self, documento, placa, inicio, fim):
+        # A agencia localiza as entidades e cria a associacao Locacao.
         cliente = self.clientes.get(documento)
         if not cliente:
             raise ClienteInexistenteError("Cliente não cadastrado.")
-        veiculo = self.veiculos[placa]
+        veiculo = self.veiculos.get(placa)
+        if veiculo is None:
+            raise VeiculoIndisponivelError("Veiculo inexistente ou indisponivel.")
         locacao = Locacao(cliente, veiculo, inicio, fim)
         self.locacoes.append(locacao)
         cliente.historico.append(locacao)

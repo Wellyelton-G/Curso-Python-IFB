@@ -1,3 +1,5 @@
+"""Questao 14: polimorfismo no calculo de pagamentos."""
+
 from abc import ABC, abstractmethod
 
 
@@ -8,6 +10,7 @@ class Funcionario(ABC):
 
     @abstractmethod
     def calcular_pagamento(self):
+        # O metodo abstrato obriga cada subclasse a fornecer sua propria regra.
         pass
 
 
@@ -48,4 +51,5 @@ if __name__ == "__main__":
     ]
 
     for funcionario in funcionarios:
+        # A chamada e igual para todos, embora cada objeto calcule de outro modo.
         print(f"{funcionario.nome}: R$ {funcionario.calcular_pagamento():.2f}")

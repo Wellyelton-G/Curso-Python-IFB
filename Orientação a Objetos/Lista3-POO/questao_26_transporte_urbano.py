@@ -1,3 +1,5 @@
+"""Questao 26: meios de transporte intercambiaveis em uma mesma viagem."""
+
 from abc import ABC, abstractmethod
 
 
@@ -81,6 +83,7 @@ class Viagem:
         self.rota = rota
 
     def realizar(self, integracao=False):
+        # O tipo concreto calcula sua tarifa; Viagem aplica a regra de integracao.
         tarifa = self.transporte.calcular_tarifa(self.rota)
         if integracao:
             tarifa *= 0.50
@@ -90,6 +93,7 @@ class Viagem:
 
 
 def sugerir_menor_custo(transportes, rota):
+    # min recebe uma funcao-chave para comparar as tarifas calculadas.
     return min(transportes, key=lambda t: t.calcular_tarifa(rota))
 
 

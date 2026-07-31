@@ -1,3 +1,6 @@
+"""Questao 16: objetos associados e regra de disponibilidade."""
+
+
 class Hospede:
     def __init__(self, nome, documento):
         self.nome = nome
@@ -22,6 +25,7 @@ class Reserva:
         self.quarto = quarto
         self.diarias = diarias
         self.ativa = True
+        # Reservar muda imediatamente o estado do quarto relacionado.
         quarto.disponivel = False
 
     def calcular_valor(self):
@@ -31,6 +35,7 @@ class Reserva:
         if not self.ativa:
             raise RuntimeError("A reserva já foi cancelada.")
         self.ativa = False
+        # Cancelar desfaz a indisponibilidade criada pela reserva.
         self.quarto.disponivel = True
 
 

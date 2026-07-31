@@ -1,3 +1,6 @@
+"""Questao 10: a disponibilidade e uma regra pertencente ao Livro."""
+
+
 class Livro:
     def __init__(self, titulo, autor):
         self.titulo = titulo
@@ -5,6 +8,7 @@ class Livro:
         self.disponivel = True
 
     def emprestar(self):
+        # Consultar o estado antes de altera-lo impede emprestimos duplicados.
         if not self.disponivel:
             print("O livro já está emprestado.")
             return
