@@ -1,0 +1,53 @@
+Depois instale as dependências:
+
+pip install fastapi uvicorn
+
+
+
+Execute a API com:
+
+uvicorn main:app --reload
+
+
+
+A API ficará disponível em:
+
+http://127.0.0.1:8000
+
+
+
+A documentação interativa pode ser acessada em:
+
+http://127.0.0.1:8000/docs
+
+
+E a documentação alternativa em:
+
+http://127.0.0.1:8000/redoc
+
+
+Os endpoints ficarão assim:
+
+GET     /
+GET     /livros
+GET     /livros/{livro_id}
+POST    /livros
+PUT     /livros/{livro_id}
+DELETE  /livros/{livro_id}
+
+
+
+Um exemplo de cadastro via POST /livros seria:
+
+{
+    "titulo": "Memórias Póstumas de Brás Cubas",
+    "autor": "Machado de Assis"
+}
+
+E a resposta:
+
+{
+    "id": 4,
+    "titulo": "Memórias Póstumas de Brás Cubas",
+    "autor": "Machado de Assis"
+}
