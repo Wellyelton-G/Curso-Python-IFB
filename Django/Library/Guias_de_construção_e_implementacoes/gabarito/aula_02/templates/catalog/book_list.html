@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Livros · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Acervo</h1>
+
+  {# books foi enviado pela view no dicionário de contexto #}
+  {% if books %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Capa</th>
+            <th>Título</th>
+            <th>Autor(a)</th>
+            <th>Disponíveis</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {# Uma linha da tabela para cada livro #}
+          {% for book in books %}
+            <tr>
+              <td>
+                {# book.image.url monta o endereço /media/book_covers/... #}
+                {% if book.image %}
+                  <img class="cover" src="{{ book.image.url }}" alt="Capa de {{ book.title }}">
+                {% else %}
+                  <div class="cover">sem capa</div>
+                {% endif %}
+              </td>
+              <td>{{ book.title }}</td>
+              <td>{{ book.author }}</td>
+              {# copies_available é a @property do model Book #}
+              <td>{{ book.copies_available }} de {{ book.copies_total }}</td>
+              <td>
+                {% if book.copies_available > 0 %}
+                  {# Emprestar altera dados: formulário POST com o token de segurança CSRF #}
+                  <form class="inline" method="post" action="{% url 'catalog:borrow_book' book.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-primary" type="submit">Emprestar</button>
+                  </form>
+                {% else %}
+                  <button class="btn" disabled>Indisponível</button>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">Nenhum livro cadastrado ainda. Cadastre pelo Admin.</p>
+  {% endif %}
+{% endblock %}

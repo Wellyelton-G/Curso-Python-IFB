@@ -1,0 +1,4 @@
+Django>=5.2,<6.0
+Pillow
+openpyxl
+reportlab

@@ -1,41 +1,35 @@
-"""Rotas (URLs) específicas do app catalog.
-
-Cada `path` abaixo liga um caminho de URL a uma função em `views.py`.
-O `app_name` permite usar nomes de rota com namespace, por exemplo `catalog:book_list`.
-"""
-
 from django.urls import path
+
 from . import views
 
+# Namespace do app: nos templates escrevemos {% url 'catalog:book_list' %}
 app_name = "catalog"
 
 urlpatterns = [
-    # raiz do app (e do site se incluído como "/"): lista livros
+    # Página inicial: lista de livros
     path("", views.book_list, name="book_list"),
-    path("book/<int:book_id>/", views.book_detail, name="book_detail"),  # adicionada rota de detalhes
-    path("advanced-search/", views.advanced_search, name="advanced_search"),
-    path("me/searches/", views.search_history, name="search_history"),
-    path("signup/", views.signup, name="signup"),
-    # Ações do usuário
-    path("borrow/<int:book_id>/", views.borrow_book, name="borrow_book"),
-    path("return/<int:loan_id>/", views.return_book, name="return_book"),
-    path("me/loans/", views.my_loans, name="my_loans"),
-    # Ferramentas de staff (evitamos o prefixo 'admin/' para não colidir com o Django Admin)
-    path("staff/book/<int:book_id>/borrowers/", views.admin_book_borrowers, name="admin_book_borrowers"),
-    path("staff/overdue/", views.admin_overdue_loans, name="admin_overdue_loans"),
-    path("staff/loan/<int:loan_id>/return/", views.admin_mark_returned, name="admin_mark_returned"),
-    # Avaliações
-    path("book/<int:book_id>/review/", views.add_review, name="add_review"),
-    path("review/<int:review_id>/delete/", views.delete_review, name="delete_review"),
-    # Relatórios e exportação (apenas staff) -> acessar direto pelas URLs:
-    # /catalog/reports/loans/
-    # /catalog/reports/popular-books/
-    # /catalog/reports/active-users/
-    # /catalog/reports/overdue-loans/
-    # Exportação: /catalog/reports/export/?type=loans&format=pdf|xlsx
-    path("reports/loans/", views.report_loans, name="report_loans"),
-    path("reports/popular-books/", views.report_popular_books, name="report_popular_books"),
-    path("reports/active-users/", views.report_active_users, name="report_active_users"),
-    path("reports/overdue-loans/", views.report_overdue_loans, name="report_overdue_loans"),
-    path("reports/export/", views.report_export, name="report_export"),  # ?type=loans&format=pdf|xlsx
+    path("busca-avancada/", views.advanced_search, name="advanced_search"),
+    path("historico/", views.search_history, name="search_history"),
+    # <str:file_format> captura um texto: /exportar/csv/ -> file_format="csv"
+    path("exportar/<str:file_format>/", views.export_books, name="export_books"),
+    # Endereço usado pelo JavaScript do autocompletar
+    path("api/sugestoes/", views.book_suggestions, name="book_suggestions"),
+    # Cadastro de novos leitores
+    path("cadastro/", views.signup, name="signup"),
+    # Página de um livro e as avaliações
+    path("livros/<int:book_id>/", views.book_detail, name="book_detail"),
+    path("livros/<int:book_id>/avaliar/", views.review_book, name="review_book"),
+    path("avaliacoes/<int:review_id>/excluir/", views.delete_review, name="delete_review"),
+    # <int:book_id> captura um número da URL e entrega para a view como book_id
+    path("livros/<int:book_id>/emprestar/", views.borrow_book, name="borrow_book"),
+    path("emprestimos/", views.my_loans, name="my_loans"),
+    path("emprestimos/<int:loan_id>/devolver/", views.return_book, name="return_book"),
+    # Área da equipe (prefixo "equipe/" para não colidir com o "admin/" do Django)
+    path("equipe/atrasados/", views.overdue_loans, name="overdue_loans"),
+    path("equipe/livros/<int:book_id>/leitores/", views.book_borrowers, name="book_borrowers"),
+    path("equipe/emprestimos/<int:loan_id>/devolver/", views.staff_mark_returned, name="staff_mark_returned"),
+    # Relatórios. <slug:...> aceita letras, números, hífen e sublinhado (ex.: "populares")
+    path("equipe/relatorios/", views.reports_index, name="reports_index"),
+    path("equipe/relatorios/<slug:slug>/", views.report_detail, name="report_detail"),
+    path("equipe/relatorios/<slug:slug>/<str:file_format>/", views.report_export, name="report_export"),
 ]

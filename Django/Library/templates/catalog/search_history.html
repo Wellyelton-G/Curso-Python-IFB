@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Histórico de buscas · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Minhas buscas recentes</h1>
+
+  {% if searches %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Quando</th>
+            <th>Texto</th>
+            <th>Filtros</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for search in searches %}
+            <tr>
+              <td>{{ search.created_at|date:"d/m/Y H:i" }}</td>
+              <td>{{ search.q|default:"—" }}</td>
+              <td class="muted">
+                {# params é o dicionário do JSONField; .items percorre chave e valor, como no Python #}
+                {% for key, value in search.params.items %}
+                  {% if value and key != "q" %}{{ key }}={{ value }} {% endif %}
+                {% endfor %}
+              </td>
+              {# as_querystring (método do model) remonta a URL da busca #}
+              <td><a class="btn" href="{% url 'catalog:book_list' %}?{{ search.as_querystring }}">Refazer</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">Você ainda não fez nenhuma busca.</p>
+  {% endif %}
+{% endblock %}

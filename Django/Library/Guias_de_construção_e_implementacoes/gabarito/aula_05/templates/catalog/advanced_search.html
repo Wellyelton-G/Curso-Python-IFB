@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Busca avançada · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Busca avançada</h1>
+  <p class="muted">Preencha só o que quiser usar. Os campos vazios são ignorados.</p>
+
+  {# action aponta para a lista de livros: quem faz a busca é a book_list #}
+  {# Os "name" dos campos são os mesmos parâmetros lidos pela função filter_books #}
+  <form class="card" method="get" action="{% url 'catalog:book_list' %}">
+    <div class="form-grid">
+      <div>
+        <label for="title">Título contém</label>
+        <input id="title" type="text" name="title">
+      </div>
+      <div>
+        <label for="author">Autor(a) contém</label>
+        <input id="author" type="text" name="author">
+      </div>
+      <div>
+        <label for="publisher">Editora contém</label>
+        <input id="publisher" type="text" name="publisher">
+      </div>
+      <div>
+        <label for="categoria">Categoria</label>
+        <select id="categoria" name="categoria">
+          <option value="">Todas</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="idioma">Idioma</label>
+        <select id="idioma" name="idioma">
+          <option value="">Qualquer</option>
+          {# languages traz apenas os idiomas que existem no acervo #}
+          {% for language in languages %}
+            <option value="{{ language }}">{{ language }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="ano_min">Ano de edição — de</label>
+        <input id="ano_min" type="number" name="ano_min" placeholder="Ex.: 1900">
+      </div>
+      <div>
+        <label for="ano_max">Ano de edição — até</label>
+        <input id="ano_max" type="number" name="ano_max" placeholder="Ex.: 2000">
+      </div>
+      <div>
+        <label for="ordenar">Ordenar por</label>
+        <select id="ordenar" name="ordenar">
+          {% for value, label in order_options %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <label><input type="checkbox" name="disponivel" value="1"> Somente com cópias disponíveis</label>
+      <button class="btn btn-primary" type="submit">Buscar</button>
+      <a class="btn" href="{% url 'catalog:book_list' %}">Voltar</a>
+    </div>
+  </form>
+{% endblock %}

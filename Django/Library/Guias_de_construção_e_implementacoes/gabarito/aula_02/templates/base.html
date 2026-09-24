@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {# Cada página pode trocar o título preenchendo este bloco #}
+  <title>{% block title %}Biblioteca{% endblock %}</title>
+  <style>
+    /* 1) Cores do tema claro, guardadas em variáveis CSS */
+    :root {
+      --bg: #f6f7f9;       /* fundo da página */
+      --card: #ffffff;     /* fundo de cartões, tabelas e campos */
+      --text: #1f2328;     /* texto principal */
+      --muted: #6b7280;    /* texto secundário */
+      --border: #d9dde3;   /* bordas */
+      --primary: #2f5bd3;  /* links e botões principais */
+      --header: #1e293b;   /* barra do menu */
+      --danger: #b42318;   /* erros e atrasos */
+      --success: #067647;  /* confirmações */
+      --warning: #b54708;  /* avisos */
+    }
+    /* 2) Tema escuro: só trocamos o valor das variáveis */
+    .theme-dark {
+      --bg: #0f141a;
+      --card: #18202a;
+      --text: #e6e9ee;
+      --muted: #9aa4b2;
+      --border: #2c3643;
+      --primary: #7aa2ff;
+      --header: #0b1016;
+      --danger: #ff7a70;
+      --success: #4ad295;
+      --warning: #ffb86b;
+    }
+
+    /* 3) Estilos gerais: todos usam as variáveis acima */
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+    a { color: var(--primary); }
+
+    /* Menu superior */
+    header { background: var(--header); padding: 12px 16px; }
+    nav { max-width: 1000px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+    nav a { color: #fff; text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+    .spacer { flex: 1; } /* ocupa o espaço livre e empurra o que vem depois para a direita */
+    nav .user { color: #cbd5e1; }
+
+    /* Área de conteúdo */
+    main { max-width: 1000px; margin: 0 auto; padding: 16px; }
+
+    /* Classes utilitárias usadas nas páginas */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .muted { color: var(--muted); }
+    .danger { color: var(--danger); }
+    .success { color: var(--success); }
+
+    /* Botões (servem para <button> e para links <a class="btn">) */
+    .btn { display: inline-block; padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;
+           background: var(--card); color: var(--text); cursor: pointer; font: inherit; text-decoration: none; }
+    .btn:hover { border-color: var(--primary); }
+    .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .btn[disabled] { opacity: .5; cursor: not-allowed; }
+    form.inline { display: inline; } /* formulário na mesma linha do texto */
+
+    /* Tabelas */
+    table { width: 100%; border-collapse: collapse; background: var(--card); }
+    th, td { padding: 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+    .table-wrap { overflow-x: auto; } /* em telas pequenas a tabela rola para o lado */
+
+    /* Miniatura da capa (ou o quadro "sem capa") */
+    .cover { width: 48px; height: 72px; object-fit: cover; border-radius: 4px; background: var(--border);
+             display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted); text-align: center; }
+
+    /* Mensagens do Django: a classe vem de message.tags (success, error, warning, info) */
+    .message { padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; border: 1px solid var(--border); background: var(--card); }
+    .message.success { border-color: var(--success); color: var(--success); }
+    .message.error   { border-color: var(--danger);  color: var(--danger); }
+    .message.warning { border-color: var(--warning); color: var(--warning); }
+
+    /* Formulários */
+    input, select, textarea { font: inherit; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px;
+                              background: var(--card); color: var(--text); }
+    .form-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .form-grid label { display: block; font-weight: 600; margin-bottom: 4px; }
+    .form-grid input, .form-grid select { width: 100%; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="{% url 'catalog:book_list' %}"><strong>Biblioteca</strong></a>
+      {# "user" está disponível em todos os templates: é o usuário da requisição #}
+      {% if user.is_authenticated %}
+        <a href="{% url 'catalog:my_loans' %}">Meus empréstimos</a>
+        {# Links que só a equipe (is_staff) enxerga #}
+        {% if user.is_staff %}
+          <a href="{% url 'admin:index' %}">Admin</a>
+        {% endif %}
+      {% endif %}
+      <span class="spacer"></span>
+      <button id="theme-toggle" class="btn" type="button">Tema escuro</button>
+      {% if user.is_authenticated %}
+        <span class="user">Olá, {{ user.username }}</span>
+        {# Sair altera a sessão, por isso é um formulário POST (e não um link) #}
+        <form class="inline" method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Sair</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}">Entrar</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main>
+    {# Mensagens criadas nas views com messages.success(), messages.error()... Aparecem uma única vez. #}
+    {% for message in messages %}
+      <div class="message {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+
+    {# Aqui entra o conteúdo de cada página #}
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    // Tema claro/escuro: a escolha fica guardada no navegador (localStorage)
+    (function () {
+      const root = document.documentElement; // a tag <html>
+      const button = document.getElementById("theme-toggle");
+
+      // Liga ou desliga a classe .theme-dark e ajusta o texto do botão
+      function apply(theme) {
+        root.classList.toggle("theme-dark", theme === "dark");
+        button.textContent = theme === "dark" ? "Tema claro" : "Tema escuro";
+      }
+
+      // Na primeira visita, segue a preferência do sistema operacional
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      apply(localStorage.getItem("theme") || (prefersDark ? "dark" : "light"));
+
+      // A cada clique, inverte o tema e guarda a escolha
+      button.addEventListener("click", function () {
+        const next = root.classList.contains("theme-dark") ? "light" : "dark";
+        localStorage.setItem("theme", next);
+        apply(next);
+      });
+    })();
+  </script>
+</body>
+</html>

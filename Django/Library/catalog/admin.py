@@ -1,83 +1,63 @@
-"""Configurações do Django Admin para Book e Loan.
-
-O Django Admin é um painel pronto para gerenciar dados. Aqui
-personalizamos como os modelos aparecem e criamos uma ação
-para marcar empréstimos como devolvidos.
-"""
-
 from django.contrib import admin
-from django.utils import timezone
 
-from .models import Book, Loan, Category, SearchQuery, Review
-
-
-@admin.register(Book)
-class BookAdmin(admin.ModelAdmin):
-	# Quais colunas mostrar na listagem
-	list_display = ("title", "author", "isbn", "copies_total", "copies_available", "category")
-	# Campos pesquisáveis na barra de busca
-	search_fields = ("title", "author", "isbn", "publisher")
-	# Filtros laterais úteis
-	list_filter = ("category", "language", "edition_year")
-
-
-@admin.register(Loan)
-class LoanAdmin(admin.ModelAdmin):
-	# Listagem com campos úteis e um indicador de atraso
-	list_display = ("book", "user", "borrowed_at", "due_date", "returned_at", "_is_overdue")
-	# Filtro lateral por devolução
-	list_filter = ("returned_at",)
-	# Busca por título do livro e username do usuário (lookup via relacionamento)
-	search_fields = ("book__title", "user__username")
-	# Ação em massa: marcar registros selecionados como devolvidos
-	actions = ("marcar_como_devolvido",)
-
-	@admin.display(boolean=True, description="Atrasado")
-	def _is_overdue(self, obj: Loan):
-		return obj.is_overdue
-
-	@admin.action(description="Marcar como devolvido")
-	def marcar_como_devolvido(self, request, queryset):
-		# Percorre apenas empréstimos ainda ativos e define returned_at
-		updated = 0
-		now = timezone.now()
-		for loan in queryset.filter(returned_at__isnull=True):
-			loan.returned_at = now
-			loan.save(update_fields=["returned_at"])
-			updated += 1
-		self.message_user(request, f"{updated} empréstimo(s) marcados como devolvidos.")
+from .models import Book, Category, Loan, Review, SearchQuery  # o ponto significa "deste mesmo app"
 
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-	list_display = ("name",)
-	search_fields = ("name",)
+    list_display = ("name", "description")
+    search_fields = ("name",)  # a vírgula faz disto uma tupla de um item só
+
+
+# O decorator @admin.register liga o model Book à classe de configuração logo abaixo
+@admin.register(Book)
+class BookAdmin(admin.ModelAdmin):
+    # Colunas mostradas na lista de livros (pode incluir @property, como copies_available)
+    list_display = ("title", "author", "category", "language", "edition_year",
+                    "copies_total", "copies_available")
+    # Filtros laterais por categoria e idioma
+    list_filter = ("category", "language")
+    # Campos pesquisados pela caixa de busca do Admin
+    search_fields = ("title", "author", "isbn", "publisher")
+
+
+@admin.register(Loan)
+class LoanAdmin(admin.ModelAdmin):
+    # "atrasado" não é um campo: é o método definido mais abaixo nesta classe
+    list_display = ("book", "user", "borrowed_at", "due_date", "returned_at", "atrasado")
+    # Filtros que aparecem na lateral direita da lista
+    list_filter = ("returned_at", "due_date")
+    # Dois sublinhados "atravessam" a ForeignKey: busca no título do livro e no nome do usuário
+    search_fields = ("book__title", "user__username")
+    # Ações em massa disponíveis no menu "Ação" da lista
+    actions = ["marcar_como_devolvido"]
+
+    # boolean=True faz o Admin mostrar um ícone de sim/não em vez de True/False
+    @admin.display(boolean=True, description="Atrasado?")
+    def atrasado(self, obj):
+        # obj é o empréstimo da linha que está sendo desenhada
+        return obj.is_overdue
+
+    @admin.action(description="Marcar como devolvido")
+    def marcar_como_devolvido(self, request, queryset):
+        # queryset contém os empréstimos que o usuário marcou na lista
+        ativos = queryset.filter(returned_at__isnull=True)  # ignora os que já foram devolvidos
+        total = ativos.count()
+        for loan in ativos:
+            loan.mark_returned()  # reaproveita a regra que está no model
+        # Mensagem que aparece no topo da página do Admin
+        self.message_user(request, f"{total} empréstimo(s) marcado(s) como devolvido(s).")
 
 
 @admin.register(SearchQuery)
 class SearchQueryAdmin(admin.ModelAdmin):
-	list_display = ("q", "user", "session_key", "created_at")
-	search_fields = ("q", "user__username", "session_key")
-	list_filter = ("created_at",)
+    list_display = ("user", "q", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("q", "user__username")
 
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-	"""Admin para avaliações de livros.
-	
-	PT-BR: gerencia avaliações públicas no painel administrativo.
-	"""
-	list_display = ["book", "user", "rating", "has_comment", "created_at", "updated_at"]
-	list_filter = ["rating", "created_at"]
-	search_fields = ["book__title", "user__username", "comment"]
-	readonly_fields = ["created_at", "updated_at"]
-	date_hierarchy = "created_at"
-	
-	def has_comment(self, obj):
-		"""Indica se tem comentário."""
-		return bool(obj.comment)
-	has_comment.boolean = True
-	has_comment.short_description = "Com comentário"  # PT-BR: rótulo da coluna
-	
-	def get_queryset(self, request):
-		return super().get_queryset(request).select_related("book", "user")
+    list_display = ("book", "user", "rating", "created_at")
+    list_filter = ("rating",)
+    search_fields = ("book__title", "user__username", "comment")

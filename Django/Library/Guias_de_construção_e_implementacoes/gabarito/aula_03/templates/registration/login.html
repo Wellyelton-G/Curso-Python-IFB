@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{# extends precisa ser a primeira linha: esta página herda o layout do base.html #}
+{% block title %}Entrar · Biblioteca{% endblock %}
+{% block content %}
+  <div class="card" style="max-width: 420px; margin: 40px auto;">
+    <h1>Entrar</h1>
+
+    {# form é enviado pela view de login do Django; form.errors existe quando a senha está errada #}
+    {% if form.errors %}
+      <div class="message error">Usuário ou senha incorretos. Tente novamente.</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {# Desenha os campos usuário e senha, um por parágrafo #}
+      {{ form.as_p }}
+      {# Página que a pessoa tentava abrir antes do login; o Django volta para ela depois #}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-primary" type="submit">Entrar</button>
+    </form>
+  </div>
+{% endblock %}

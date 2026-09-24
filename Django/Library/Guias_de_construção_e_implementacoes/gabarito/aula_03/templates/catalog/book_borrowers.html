@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Com quem está · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Com quem está “{{ book.title }}”?</h1>
+  <p class="muted">{{ book.author }} · {{ book.copies_available }} de {{ book.copies_total }} cópia(s) na estante</p>
+
+  {# loans contém só os empréstimos ativos deste livro (filtrados na view) #}
+  {% if loans %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Leitor(a)</th>
+            <th>Desde</th>
+            <th>Devolver até</th>
+            <th>Situação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loan in loans %}
+            <tr>
+              <td>{{ loan.user.username }}</td>
+              <td>{{ loan.borrowed_at|date:"d/m/Y" }}</td>
+              <td>{{ loan.due_date|date:"d/m/Y" }}</td>
+              <td>
+                {% if loan.is_overdue %}
+                  <strong class="danger">Atrasado</strong>
+                {% else %}
+                  <span class="success">Em dia</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">Todas as cópias estão na estante.</p>
+  {% endif %}
+
+  <p><a class="btn" href="{% url 'catalog:book_list' %}">« Voltar ao acervo</a></p>
+{% endblock %}

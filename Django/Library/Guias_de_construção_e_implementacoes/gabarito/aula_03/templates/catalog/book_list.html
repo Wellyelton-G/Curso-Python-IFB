@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Livros · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Acervo</h1>
+
+  {# Formulário de busca. É GET: os filtros vão para a URL e não precisam de csrf_token. #}
+  <form class="card" method="get">
+    <div class="form-grid">
+      <div>
+        <label for="q">Buscar por título, autor ou ISBN</label>
+        {# name="q" precisa ser igual ao nome lido na view: request.GET.get("q") #}
+        {# value="{{ q }}" faz o campo continuar mostrando o que foi pesquisado #}
+        <input id="q" type="text" name="q" value="{{ q }}" placeholder="Ex.: Machado">
+      </div>
+    </div>
+    <div class="actions">
+      <label>
+        <input type="checkbox" name="disponivel" value="1" {% if only_available %}checked{% endif %}>
+        Somente com cópias disponíveis
+      </label>
+      <button class="btn btn-primary" type="submit">Filtrar</button>
+      {# Limpar é só um link para a página sem nenhum parâmetro #}
+      <a class="btn" href="{% url 'catalog:book_list' %}">Limpar</a>
+    </div>
+  </form>
+
+  {# paginator.count é o total de livros encontrados (em todas as páginas) #}
+  <p class="muted">{{ page_obj.paginator.count }} livro(s) encontrado(s).</p>
+
+  {# Tabela com os livros da página atual #}
+  {% if page_obj %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Capa</th>
+            <th>Título</th>
+            <th>Autor(a)</th>
+            <th>Disponíveis</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for book in page_obj %}
+            <tr>
+              <td>
+                {% if book.image %}
+                  <img class="cover" src="{{ book.image.url }}" alt="Capa de {{ book.title }}">
+                {% else %}
+                  <div class="cover">sem capa</div>
+                {% endif %}
+              </td>
+              <td>{{ book.title }}</td>
+              <td>{{ book.author }}</td>
+              {# book.available vem do annotate da view: não faz consulta extra #}
+              <td>{{ book.available }} de {{ book.copies_total }}</td>
+              <td>
+                {% if book.available > 0 %}
+                  <form class="inline" method="post" action="{% url 'catalog:borrow_book' book.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-primary" type="submit">Emprestar</button>
+                  </form>
+                {% else %}
+                  <button class="btn" disabled>Indisponível</button>
+                {% endif %}
+                {# Atalho visível apenas para a equipe #}
+                {% if user.is_staff %}
+                  <a class="btn" href="{% url 'catalog:book_borrowers' book.id %}">Com quem está?</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Navegação entre páginas (só aparece se houver mais de uma) #}
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="actions">
+        {# querystring copia os parâmetros atuais da URL (q, disponivel) e troca só o page #}
+        {% if page_obj.has_previous %}
+          <a class="btn" href="{% querystring page=page_obj.previous_page_number %}">« Anterior</a>
+        {% endif %}
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="btn" href="{% querystring page=page_obj.next_page_number %}">Próxima »</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <p class="muted">Nenhum livro encontrado.</p>
+  {% endif %}
+{% endblock %}
