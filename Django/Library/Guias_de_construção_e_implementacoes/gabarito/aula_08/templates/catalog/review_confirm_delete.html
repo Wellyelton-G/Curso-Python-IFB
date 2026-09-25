@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Excluir avaliação · Biblioteca{% endblock %}
+{% block content %}
+  <div class="card" style="max-width: 560px;">
+    <h1>Excluir avaliação?</h1>
+    <p>Você deu <strong>{{ review.get_rating_display }}</strong> para “{{ review.book.title }}”. Esta ação não pode ser desfeita.</p>
+    {# Apagar altera dados: a confirmação é um formulário POST #}
+    <form method="post">
+      {% csrf_token %}
+      <div class="actions">
+        <button class="btn btn-primary" type="submit" style="background: var(--danger); border-color: var(--danger);">Sim, excluir</button>
+        <a class="btn" href="{% url 'catalog:book_detail' review.book.id %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

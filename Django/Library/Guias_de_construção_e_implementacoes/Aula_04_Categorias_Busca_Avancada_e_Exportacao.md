@@ -1,6 +1,6 @@
 # Aula 4 — Categorias, busca avançada, histórico e exportação
 
-Sistema de Biblioteca com Django · Aula 4 de 6 · [Roteiro do curso](README.md)
+Sistema de Biblioteca com Django · Aula 4 de 10 · [Roteiro do curso](README.md)
 
 ## Objetivos da aula
 
@@ -12,11 +12,11 @@ Sistema de Biblioteca com Django · Aula 4 de 6 · [Roteiro do curso](README.md)
 - **Exportar** o resultado para **CSV** e **Excel**.
 - Parte opcional: uma pequena **API JSON** e um **autocompletar** em JavaScript.
 
-Ao final da aula, o acervo tem 27 livros em 6 categorias, filtros combináveis, histórico com o botão "Refazer" e download em planilha.
+Ao final da aula, o acervo tem 27 livros em 5 categorias, filtros combináveis, histórico com o botão "Refazer" e download em planilha.
 
-| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| Concluída | Concluída | Concluída | **Aula atual** | Contas e avaliações | Relatórios e banco |
+| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 | Aula 7 | Aula 8 | Aula 9 | Aula 10 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Concluída | Concluída | Concluída | **Aula atual** | Contas e avaliações | Relatórios e banco | Publicação | API REST | Qualidade de código | Git em equipe |
 
 ## Antes de começar
 

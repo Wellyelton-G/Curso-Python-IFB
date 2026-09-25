@@ -1,6 +1,6 @@
 # Aula 5 — Contas de usuário, página do livro e avaliações
 
-Sistema de Biblioteca com Django · Aula 5 de 6 · [Roteiro do curso](README.md)
+Sistema de Biblioteca com Django · Aula 5 de 10 · [Roteiro do curso](README.md)
 
 ## Objetivos da aula
 
@@ -13,9 +13,9 @@ Sistema de Biblioteca com Django · Aula 5 de 6 · [Roteiro do curso](README.md)
 
 Ao final da aula, qualquer pessoa cria a própria conta, recupera a senha esquecida, e os leitores avaliam os livros que leram.
 
-| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| Concluída | Concluída | Concluída | Concluída | **Aula atual** | Relatórios e banco |
+| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 | Aula 7 | Aula 8 | Aula 9 | Aula 10 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Concluída | Concluída | Concluída | Concluída | **Aula atual** | Relatórios e banco | Publicação | API REST | Qualidade de código | Git em equipe |
 
 ## Antes de começar
 

@@ -1,0 +1,4 @@
+# Ferramentas usadas só no desenvolvimento (não são instaladas no servidor)
+-r requirements.txt
+ruff
+coverage

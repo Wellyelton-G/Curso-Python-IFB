@@ -41,9 +41,7 @@ def xlsx_response(filename, title, headers, rows):
     for row in rows:
         sheet.append(row)
 
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response["Content-Disposition"] = f'attachment; filename="{filename}.xlsx"'
     workbook.save(response)  # grava a planilha direto na resposta
     return response
@@ -67,23 +65,29 @@ def pdf_response(filename, title, headers, rows):
     # repeatRows=1 repete o cabeçalho no topo de cada página nova.
     table = Table([headers] + [[str(value) for value in row] for row in rows], repeatRows=1)
     # Coordenadas no formato (coluna, linha); -1 significa "a última"
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e293b")),  # fundo escuro no cabeçalho
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),  # texto branco no cabeçalho
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),  # cabeçalho em negrito
-        ("FONTSIZE", (0, 0), (-1, -1), 9),  # fonte 9 na tabela inteira
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # linhas de grade
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f1f5f9")]),  # linhas listradas
-    ]))
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e293b")),  # fundo escuro no cabeçalho
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),  # texto branco no cabeçalho
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),  # cabeçalho em negrito
+                ("FONTSIZE", (0, 0), (-1, -1), 9),  # fonte 9 na tabela inteira
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # linhas de grade
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f1f5f9")]),  # linhas listradas
+            ]
+        )
+    )
 
     generated_at = timezone.localtime().strftime("%d/%m/%Y %H:%M")
     # build monta o documento a partir de uma lista de blocos, de cima para baixo
-    document.build([
-        Paragraph(title, styles["Title"]),
-        Paragraph(f"Gerado em {generated_at}", styles["Normal"]),
-        Spacer(1, 12),  # espaço em branco de 12 pontos
-        table,
-    ])
+    document.build(
+        [
+            Paragraph(title, styles["Title"]),
+            Paragraph(f"Gerado em {generated_at}", styles["Normal"]),
+            Spacer(1, 12),  # espaço em branco de 12 pontos
+            table,
+        ]
+    )
     return response
 
 

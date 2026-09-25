@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Atrasados · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Empréstimos atrasados</h1>
+
+  {% if loans %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Livro</th>
+            <th>Leitor(a)</th>
+            <th>Devolver até</th>
+            <th>Tempo de atraso</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loan in loans %}
+            <tr>
+              <td>{{ loan.book.title }}</td>
+              <td>{{ loan.user.username }}</td>
+              <td class="danger">{{ loan.due_date|date:"d/m/Y" }}</td>
+              {# timesince calcula quanto tempo passou desde o prazo ("3 dias", "1 semana") #}
+              <td>{{ loan.due_date|timesince }}</td>
+              <td>
+                {# Ação da equipe: devolve o empréstimo de qualquer leitor #}
+                <form class="inline" method="post" action="{% url 'catalog:staff_mark_returned' loan.id %}">
+                  {% csrf_token %}
+                  <button class="btn" type="submit">Registrar devolução</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="success">Nenhum empréstimo atrasado.</p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+# Configuração das ferramentas de qualidade do projeto (Aula 9).
+# O pyproject.toml é o arquivo padrão do Python para esse tipo de configuração.
+
+[tool.ruff]
+line-length = 120  # tamanho máximo de cada linha de código
+extend-exclude = ["catalog/migrations"]  # as migrações são geradas pelo Django: não mexemos nelas
+
+[tool.ruff.lint]
+# Grupos de regras verificados:
+#   E, W = estilo (PEP 8)      F = erros prováveis (variável não usada, import esquecido...)
+#   I = ordem dos imports      B = armadilhas comuns do Python      DJ = boas práticas do Django
+select = ["E", "W", "F", "I", "B", "DJ"]
+
+[tool.ruff.format]
+quote-style = "double"  # o formatador padroniza as aspas duplas em todo o código
+
+[tool.coverage.run]
+source = ["catalog", "library"]  # o código cuja cobertura queremos medir
+omit = ["*/migrations/*", "*/tests.py", "library/asgi.py", "library/wsgi.py"]  # fora: migrações, testes e arquivos de servidor
+
+[tool.coverage.report]
+show_missing = true  # mostra os números das linhas que nenhum teste executou
+skip_covered = true  # esconde os arquivos com 100% de cobertura
+fail_under = 90  # o relatório falha se a cobertura total ficar abaixo de 90%

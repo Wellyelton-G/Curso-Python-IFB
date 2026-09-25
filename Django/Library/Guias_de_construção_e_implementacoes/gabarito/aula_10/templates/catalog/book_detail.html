@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ book.title }} · Biblioteca{% endblock %}
+{% block content %}
+  <p><a href="{% url 'catalog:book_list' %}">« Voltar ao acervo</a></p>
+
+  {# Dados do livro: capa à esquerda, informações à direita #}
+  <div class="card" style="display: flex; gap: 20px; flex-wrap: wrap;">
+    {% if book.image %}
+      <img src="{{ book.image.url }}" alt="Capa de {{ book.title }}" style="width: 160px; border-radius: 6px;">
+    {% else %}
+      <div class="cover" style="width: 160px; height: 240px;">sem capa</div>
+    {% endif %}
+
+    <div style="flex: 1; min-width: 240px;">
+      <h1 style="margin-top: 0;">{{ book.title }}</h1>
+      <p><strong>{{ book.author }}</strong></p>
+      <p class="muted">
+        {{ book.category.name|default:"Sem categoria" }}
+        {% if book.edition_year %} · {{ book.edition_year }}{% endif %}
+        {% if book.language %} · {{ book.language }}{% endif %}
+        {% if book.publisher %} · {{ book.publisher }}{% endif %}
+        · ISBN {{ book.isbn }}
+      </p>
+
+      {# stats vem do aggregate da view: {"average": ..., "total": ...} #}
+      {% if stats.total %}
+        <p style="font-size: 1.3rem;">
+          {# floatformat:1 arredonda para uma casa decimal; pluralize escolhe singular ou plural #}
+          ★ {{ stats.average|floatformat:1 }} <span class="muted">({{ stats.total }} avalia{{ stats.total|pluralize:"ção,ções" }})</span>
+        </p>
+      {% else %}
+        <p class="muted">Ainda sem avaliações.</p>
+      {% endif %}
+
+      <p>{{ book.copies_available }} de {{ book.copies_total }} cópia(s) disponível(is).</p>
+
+      <div class="actions">
+        {% if book.copies_available > 0 %}
+          <form class="inline" method="post" action="{% url 'catalog:borrow_book' book.id %}">
+            {% csrf_token %}
+            <button class="btn btn-primary" type="submit">Emprestar</button>
+          </form>
+        {% endif %}
+        {# can_review: a pessoa já pegou este livro emprestado alguma vez #}
+        {% if can_review %}
+          <a class="btn" href="{% url 'catalog:review_book' book.id %}">
+            {% if user_review %}Editar minha avaliação{% else %}Avaliar este livro{% endif %}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# Avaliações dos leitores #}
+  <h2>Avaliações</h2>
+  {% for review in reviews %}
+    <div class="card">
+      {# get_rating_display mostra o texto do choices (as estrelas) em vez do número #}
+      <strong>{{ review.get_rating_display }}</strong>
+      <span class="muted">— {{ review.user.username }}, {{ review.created_at|date:"d/m/Y" }}</span>
+      {# Só o autor vê o link de excluir (a proteção de verdade está na view) #}
+      {% if review.user == user %}
+        <a href="{% url 'catalog:delete_review' review.id %}" class="danger" style="float: right;">excluir</a>
+      {% endif %}
+      {% if review.comment %}
+        {# linebreaksbr mantém as quebras de linha que a pessoa digitou #}
+        <p>{{ review.comment|linebreaksbr }}</p>
+      {% endif %}
+    </div>
+  {% empty %}
+    {# empty aparece quando a lista do for está vazia #}
+    <p class="muted">
+      Ninguém avaliou este livro ainda.
+      {% if not can_review %}Para avaliar, pegue-o emprestado primeiro.{% endif %}
+    </p>
+  {% endfor %}
+{% endblock %}

@@ -1,6 +1,6 @@
 # Aula 2 — Login, páginas e empréstimos
 
-Sistema de Biblioteca com Django · Aula 2 de 6 · [Roteiro do curso](README.md)
+Sistema de Biblioteca com Django · Aula 2 de 10 · [Roteiro do curso](README.md)
 
 ## Objetivos da aula
 
@@ -12,9 +12,9 @@ Sistema de Biblioteca com Django · Aula 2 de 6 · [Roteiro do curso](README.md)
 
 Ao final da aula, um leitor entra no sistema, vê o acervo com as capas, pega um livro emprestado e devolve.
 
-| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| Concluída | **Aula atual** | Equipe, busca e testes | Categorias e exportação | Contas e avaliações | Relatórios e banco |
+| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 | Aula 7 | Aula 8 | Aula 9 | Aula 10 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Concluída | **Aula atual** | Equipe, busca e testes | Categorias e exportação | Contas e avaliações | Relatórios e banco | Publicação | API REST | Qualidade de código | Git em equipe |
 
 ## Antes de começar
 
@@ -82,7 +82,7 @@ Assim, se a pessoa apertar F5, ela só recarrega a lista, sem emprestar de novo.
         'DIRS': [BASE_DIR / 'templates'],  # pasta de templates do projeto (ao lado do manage.py)
 ```
 
-**1.2)** No final do arquivo, depois das linhas `MEDIA_...`, adicione:
+**1.2)** Logo abaixo das linhas `MEDIA_URL` e `MEDIA_ROOT` (acrescentadas na Aula 1), adicione:
 
 ```python
 # Autenticação (os valores são NOMES de rotas, não endereços)

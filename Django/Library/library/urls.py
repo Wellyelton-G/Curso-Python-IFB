@@ -9,6 +9,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Login, logout e recuperação de senha prontos do Django: /contas/login/, /contas/logout/ ...
     path("contas/", include("django.contrib.auth.urls")),
+    # API REST (Aula 8): todos os endereços começam com /api/
+    path("api/", include("catalog.api_urls")),
     # Todos os outros endereços são resolvidos pelo arquivo catalog/urls.py
     path("", include("catalog.urls")),
 ]

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Avaliar · Biblioteca{% endblock %}
+{% block content %}
+  <div class="card" style="max-width: 560px;">
+    {# editing vem da view: verdadeiro quando a pessoa já tinha avaliado este livro #}
+    <h1>{% if editing %}Editar avaliação{% else %}Avaliar{% endif %}: {{ book.title }}</h1>
+    <form method="post">
+      {% csrf_token %}
+      {# Desenha a nota (botões de rádio) e o comentário, com as mensagens de erro #}
+      {{ form.as_p }}
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+        <a class="btn" href="{% url 'catalog:book_detail' book.id %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

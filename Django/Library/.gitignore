@@ -1,0 +1,7 @@
+# Gerados automaticamente: não devem ir para o repositório
+staticfiles/
+__pycache__/
+.env
+.coverage
+htmlcov/
+test_db.sqlite3

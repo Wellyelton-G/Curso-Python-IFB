@@ -28,13 +28,15 @@ def all_loans():
             status = "Atrasado"
         else:
             status = "Em dia"
-        rows.append([
-            loan.book.title,
-            loan.user.username,
-            loan.borrowed_at.strftime("%d/%m/%Y"),  # strftime formata a data como texto
-            loan.due_date.strftime("%d/%m/%Y"),
-            status,
-        ])
+        rows.append(
+            [
+                loan.book.title,
+                loan.user.username,
+                loan.borrowed_at.strftime("%d/%m/%Y"),  # strftime formata a data como texto
+                loan.due_date.strftime("%d/%m/%Y"),
+                status,
+            ]
+        )
     return {"headers": ["Livro", "Leitor(a)", "Emprestado em", "Devolver até", "Situação"], "rows": rows}
 
 

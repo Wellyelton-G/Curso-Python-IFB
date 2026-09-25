@@ -32,9 +32,7 @@ class ReviewForm(forms.ModelForm):
 
     # Declaramos a nota "à mão" para usar botões de rádio sem a opção vazia "---------".
     # coerce=int converte o valor recebido (texto) em número.
-    rating = forms.TypedChoiceField(
-        label="Nota", choices=Review.RATING_CHOICES, coerce=int, widget=forms.RadioSelect
-    )
+    rating = forms.TypedChoiceField(label="Nota", choices=Review.RATING_CHOICES, coerce=int, widget=forms.RadioSelect)
 
     class Meta:
         model = Review

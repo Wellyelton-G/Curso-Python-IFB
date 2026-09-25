@@ -1,6 +1,6 @@
 # Aula 3 — Área da equipe, busca, paginação e testes
 
-Sistema de Biblioteca com Django · Aula 3 de 6 · [Roteiro do curso](README.md)
+Sistema de Biblioteca com Django · Aula 3 de 10 · [Roteiro do curso](README.md)
 
 ## Objetivos da aula
 
@@ -13,9 +13,9 @@ Sistema de Biblioteca com Django · Aula 3 de 6 · [Roteiro do curso](README.md)
 
 Ao final da aula, a equipe tem páginas próprias, o acervo tem busca e paginação, e o comando `python manage.py test` verifica 14 comportamentos do sistema.
 
-| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| Concluída | Concluída | **Aula atual** | Categorias e exportação | Contas e avaliações | Relatórios e banco |
+| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 | Aula 7 | Aula 8 | Aula 9 | Aula 10 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Concluída | Concluída | **Aula atual** | Categorias e exportação | Contas e avaliações | Relatórios e banco | Publicação | API REST | Qualidade de código | Git em equipe |
 
 ## Antes de começar
 

@@ -78,9 +78,7 @@ class Loan(models.Model):
     # ForeignKey liga cada empréstimo a UM livro (no banco, fica guardado o id do livro).
     # on_delete=CASCADE: se o livro for apagado, os empréstimos dele também são.
     # related_name="loans": permite fazer book.loans.all() para ver os empréstimos de um livro.
-    book = models.ForeignKey(
-        Book, on_delete=models.CASCADE, related_name="loans", verbose_name="Livro"
-    )
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="loans", verbose_name="Livro")
     # O usuário vem do sistema de contas do próprio Django (settings.AUTH_USER_MODEL)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -155,9 +153,7 @@ class Review(models.Model):
     # Lista de pares (valor guardado no banco, texto exibido): [(1, "★"), (2, "★★"), ...]
     RATING_CHOICES = [(n, "★" * n) for n in range(1, 6)]
 
-    book = models.ForeignKey(
-        Book, on_delete=models.CASCADE, related_name="reviews", verbose_name="Livro"
-    )
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reviews", verbose_name="Livro")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Criar conta · Biblioteca{% endblock %}
+{% block content %}
+  <div class="card" style="max-width: 480px; margin: 40px auto;">
+    <h1>Criar conta</h1>
+    <form method="post">
+      {% csrf_token %}
+      {# as_p desenha cada campo com o rótulo, o texto de ajuda e as mensagens de erro #}
+      {{ form.as_p }}
+      <button class="btn btn-primary" type="submit">Cadastrar</button>
+    </form>
+    <p class="muted">Já tem conta? <a href="{% url 'login' %}">Entrar</a></p>
+  </div>
+{% endblock %}

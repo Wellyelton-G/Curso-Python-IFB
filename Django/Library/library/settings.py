@@ -10,22 +10,47 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os  # para ler variáveis de ambiente
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv  # lê o arquivo .env (biblioteca python-dotenv)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Carrega as variáveis do arquivo .env, se ele existir, para dentro de os.environ.
+# Variáveis que já existem no sistema têm prioridade e não são substituídas.
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&us8(*b6p*2$($z!jao181u)+8mgytve@v&z7u5i)o((kzlmrr'
+# Configurações sensíveis vêm de variáveis de ambiente (definidas no sistema ou no arquivo .env).
+# No seu computador nenhuma precisa ser definida: os valores padrão servem para desenvolvimento.
+# No servidor, elas ficam no arquivo .env, que nunca vai para o GitHub (veja a Aula 7).
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DJANGO_DEBUG: "True" no desenvolvimento, "False" no servidor.
+# O "or" faz uma variável vazia no .env (ex.: "DJANGO_DEBUG=") valer como não definida.
+DEBUG = (os.environ.get("DJANGO_DEBUG") or "True") == "True"
 
-ALLOWED_HOSTS = []
+# Chave secreta usada para assinar sessões, links de redefinição de senha e tokens CSRF
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY") or "django-insecure-chave-apenas-para-desenvolvimento"
+if not DEBUG and SECRET_KEY.startswith("django-insecure"):
+    # Impede que o site vá ao ar com a chave de desenvolvimento, que está publicada no GitHub
+    raise ImproperlyConfigured("Defina a variável de ambiente DJANGO_SECRET_KEY.")
+
+# Endereços pelos quais o site pode ser acessado, separados por vírgula (ex.: "maria.pythonanywhere.com").
+# Com DEBUG=True e a lista vazia, o Django aceita localhost e 127.0.0.1.
+ALLOWED_HOSTS = [host for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if host]
+
+# Formulários enviados por HTTPS a partir desses endereços passam pela proteção CSRF
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
+
+# Fora do desenvolvimento, os cookies de sessão e de CSRF só trafegam por HTTPS
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 
 # Application definition
@@ -33,54 +58,63 @@ ALLOWED_HOSTS = []
 # INSTALLED_APPS: lista de apps ativos no projeto. Inclui 'catalog' (app local)
 # para habilitar seus modelos, views, templates e migrações.
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     # Local apps
-    'catalog',
+    "catalog",
+    "rest_framework",  # Django REST Framework: a API (Aula 8)
+    "rest_framework.authtoken",  # tokens de acesso à API
+    "drf_spectacular",  # documentação automática da API (/api/docs/)
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'library.urls'
+ROOT_URLCONF = "library.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    # Diretório global de templates (além dos templates dentro de cada app)
-    'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        # Diretório global de templates (além dos templates dentro de cada app)
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'library.wsgi.application'
+WSGI_APPLICATION = "library.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+        # Aula 9: cada transação já começa reservando a escrita no banco. No SQLite, é isso que
+        # faz dois empréstimos simultâneos acontecerem um de cada vez (o select_for_update é ignorado).
+        "OPTIONS": {"transaction_mode": "IMMEDIATE"},
+        # Aula 9: nos testes, um banco em arquivo (e não na memória), para o teste de concorrência
+        # funcionar como no sistema real. O Django cria e apaga esse arquivo sozinho.
+        "TEST": {"NAME": BASE_DIR / "test_db.sqlite3"},
     }
 }
 
@@ -90,16 +124,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -108,10 +142,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 # Idioma padrão de mensagens e formatações
-LANGUAGE_CODE = 'pt-br'
+LANGUAGE_CODE = "pt-br"
 
 # Fuso horário da aplicação
-TIME_ZONE = 'America/Sao_Paulo'
+TIME_ZONE = "America/Sao_Paulo"
 
 USE_I18N = True
 
@@ -122,25 +156,51 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 # URL base para arquivos estáticos (CSS, imagens, JS)
-STATIC_URL = 'static/'
+STATIC_URL = "static/"  # endereço dos arquivos estáticos no navegador: /static/css/style.css
+STATICFILES_DIRS = [BASE_DIR / "static"]  # pasta onde ficam os nossos CSS e JavaScript
+STATIC_ROOT = BASE_DIR / "staticfiles"  # pasta para onde o collectstatic copia tudo (usada no servidor)
 
 # Media files (uploads de usuários - ex: capas de livros)
 # MEDIA_URL: prefixo da URL para acessar arquivos enviados (ex: /media/book_covers/capa.jpg)
 # MEDIA_ROOT: caminho físico no sistema onde os uploads são salvos
 # Em produção, configure o servidor web (Nginx/Apache) para servir esta pasta
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Auth redirects: define URLs nomeadas usadas nos fluxos de login/logout
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'catalog:book_list'
-LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "catalog:book_list"
+LOGOUT_REDIRECT_URL = "login"
 
 # E-mail: em desenvolvimento, imprimimos os e-mails no console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'Biblioteca <nao-responda@biblioteca.local>'  # remetente dos e-mails
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "Biblioteca <nao-responda@biblioteca.local>"  # remetente dos e-mails
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ---------- API REST (Aula 8) ----------
+REST_FRAMEWORK = {
+    # Como a API descobre quem está fazendo o pedido:
+    # 1) pelo token enviado no cabeçalho "Authorization: Token ..." (programas, aplicativos)
+    # 2) pela sessão de login do site (útil para testar a API no navegador)
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    # Seguro por padrão: todo endpoint exige login, a não ser que a view libere
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    # Listas longas voltam em páginas de 10 itens: /api/livros/?page=2
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+    # Quem gera a descrição da API para a documentação automática
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API da Biblioteca",
+    "DESCRIPTION": "API REST do sistema de biblioteca: acervo, categorias e empréstimos.",
+    "VERSION": "1.0.0",
+}

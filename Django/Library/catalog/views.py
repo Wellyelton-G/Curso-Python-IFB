@@ -1,4 +1,3 @@
-from datetime import timedelta  # representa um intervalo de tempo (ex.: 14 dias)
 from functools import wraps  # ajuda a escrever decorators
 
 from django.contrib import messages  # mensagens de retorno ("Empréstimo feito!")
@@ -12,12 +11,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from . import services  # regras de empréstimo, compartilhadas com a API (Aula 8)
 from .exporters import EXPORTERS  # funções que geram CSV, Excel e PDF
 from .forms import ReviewForm, SignUpForm
 from .models import Book, Category, Loan, Review, SearchQuery
 from .reports import REPORTS  # os relatórios da equipe
 
-LOAN_DAYS = 14  # prazo padrão de empréstimo, em dias
 BOOKS_PER_PAGE = 10  # quantos livros aparecem por página
 
 # Opções de ordenação: valor que vai na URL -> (texto exibido, campos do order_by).
@@ -63,9 +62,7 @@ def filter_books(params):
     # Busca simples: um texto procurado em vários campos ao mesmo tempo (OU)
     q = params.get("q", "").strip()
     if q:
-        books = books.filter(
-            Q(title__icontains=q) | Q(author__icontains=q) | Q(isbn__icontains=q)
-        )
+        books = books.filter(Q(title__icontains=q) | Q(author__icontains=q) | Q(isbn__icontains=q))
 
     # Busca avançada: cada campo filtra só a sua coluna.
     # **{...} transforma o dicionário em argumento nomeado: {"author__icontains": "x"} -> author__icontains="x"
@@ -109,8 +106,10 @@ def filter_choices():
     return {
         "categories": Category.objects.all(),
         # values_list(..., flat=True) devolve uma lista simples; distinct() remove repetidos
-        "languages": Book.objects.exclude(language="").values_list("language", flat=True)
-                                 .distinct().order_by("language"),
+        "languages": Book.objects.exclude(language="")
+        .values_list("language", flat=True)
+        .distinct()
+        .order_by("language"),
         # Lista de pares (valor, texto) para as opções de ordenação
         "order_options": [(key, label) for key, (label, _) in ORDER_OPTIONS.items()],
     }
@@ -163,8 +162,16 @@ def export_books(request, file_format):
     headers = ["Título", "Autor(a)", "ISBN", "Categoria", "Idioma", "Ano", "Disponíveis", "Total"]
     # Uma lista por livro, na mesma ordem do cabeçalho
     rows = [
-        [b.title, b.author, b.isbn, b.category.name if b.category else "",
-         b.language, b.edition_year or "", b.available, b.copies_total]
+        [
+            b.title,
+            b.author,
+            b.isbn,
+            b.category.name if b.category else "",
+            b.language,
+            b.edition_year or "",
+            b.available,
+            b.copies_total,
+        ]
         for b in books
     ]
     export = EXPORTERS[file_format]  # escolhe a função certa (csv_response, xlsx_response...)
@@ -192,21 +199,14 @@ def borrow_book(request, book_id):
     # Busca o livro pelo id; se não existir, responde 404 (página não encontrada)
     book = get_object_or_404(Book, pk=book_id)
 
-    # Regra 1: precisa haver cópia disponível
-    if book.copies_available == 0:
-        messages.error(request, f"Não há cópias disponíveis de “{book.title}”.")
+    # As regras ficam em services.py (Aula 8): a API usa exatamente as mesmas
+    try:
+        loan = services.borrow_book(book, request.user)
+    except services.LoanError as error:
+        messages.error(request, str(error))  # a mensagem da regra que impediu o empréstimo
         return redirect("catalog:book_list")
 
-    # Regra 2: a pessoa não pode estar com este mesmo livro ainda sem devolver
-    already_has = book.loans.filter(user=request.user, returned_at__isnull=True).exists()
-    if already_has:
-        messages.warning(request, f"Você já está com “{book.title}”.")
-        return redirect("catalog:book_list")
-
-    # Tudo certo: calcula o prazo e cria o empréstimo
-    due_date = timezone.localdate() + timedelta(days=LOAN_DAYS)
-    Loan.objects.create(book=book, user=request.user, due_date=due_date)
-    messages.success(request, f"Empréstimo feito! Devolva “{book.title}” até {due_date:%d/%m/%Y}.")
+    messages.success(request, f"Empréstimo feito! Devolva “{book.title}” até {loan.due_date:%d/%m/%Y}.")
     # Depois de um POST, sempre redirecionamos (padrão Post/Redirect/Get)
     return redirect("catalog:my_loans")
 

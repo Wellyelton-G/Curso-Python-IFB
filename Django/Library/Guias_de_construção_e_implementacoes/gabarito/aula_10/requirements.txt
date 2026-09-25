@@ -1,0 +1,8 @@
+Django>=5.2,<6.0
+Pillow
+openpyxl
+reportlab
+python-dotenv
+djangorestframework
+drf-spectacular
+requests

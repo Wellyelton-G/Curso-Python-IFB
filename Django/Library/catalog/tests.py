@@ -1,11 +1,18 @@
+import threading
+import unittest.mock
 from datetime import timedelta
+from io import StringIO
 
 from django.contrib.auth.models import User
 from django.core import mail  # caixa de saída de e-mails usada nos testes
-from django.test import TestCase
+from django.core.management import call_command
+from django.db import connection
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse  # gera o endereço a partir do nome da rota (como o {% url %})
 from django.utils import timezone
+from rest_framework.test import APIClient, APITestCase  # testes da API (Aula 8)
 
+from . import services
 from .models import Book, Category, Loan, Review, SearchQuery
 
 
@@ -20,8 +27,9 @@ class LoanModelTests(TestCase):
     def setUp(self):
         # setUp roda antes de CADA teste; o banco de testes começa vazio
         self.user = User.objects.create_user("maria", password="senha-forte-123")
-        self.book = Book.objects.create(title="Dom Casmurro", author="Machado de Assis",
-                                        isbn="9788535910663", copies_total=2)
+        self.book = Book.objects.create(
+            title="Dom Casmurro", author="Machado de Assis", isbn="9788535910663", copies_total=2
+        )
 
     def test_copies_available_desconta_emprestimos_ativos(self):
         self.assertEqual(self.book.copies_available, 2)
@@ -83,8 +91,9 @@ class LoanViewsTests(TestCase):
     def setUp(self):
         self.maria = User.objects.create_user("maria", password="senha-forte-123")
         self.joao = User.objects.create_user("joao", password="senha-forte-123")
-        self.book = Book.objects.create(title="Dom Casmurro", author="Machado de Assis",
-                                        isbn="9788535910663", copies_total=1)
+        self.book = Book.objects.create(
+            title="Dom Casmurro", author="Machado de Assis", isbn="9788535910663", copies_total=1
+        )
 
     def test_emprestar_cria_emprestimo(self):
         self.client.force_login(self.maria)
@@ -148,12 +157,30 @@ class CatalogFiltersTests(TestCase):
         self.client.force_login(self.user)
         romance = Category.objects.create(name="Romance")
         tecnologia = Category.objects.create(name="Tecnologia")
-        Book.objects.create(title="Dom Casmurro", author="Machado de Assis", isbn="1111111111111",
-                            category=romance, language="Português", edition_year=1899)
-        Book.objects.create(title="Python Fluente", author="Luciano Ramalho", isbn="2222222222222",
-                            category=tecnologia, language="Português", edition_year=2015)
-        Book.objects.create(title="Pride and Prejudice", author="Jane Austen", isbn="3333333333333",
-                            category=romance, language="Inglês", edition_year=1813)
+        Book.objects.create(
+            title="Dom Casmurro",
+            author="Machado de Assis",
+            isbn="1111111111111",
+            category=romance,
+            language="Português",
+            edition_year=1899,
+        )
+        Book.objects.create(
+            title="Python Fluente",
+            author="Luciano Ramalho",
+            isbn="2222222222222",
+            category=tecnologia,
+            language="Português",
+            edition_year=2015,
+        )
+        Book.objects.create(
+            title="Pride and Prejudice",
+            author="Jane Austen",
+            isbn="3333333333333",
+            category=romance,
+            language="Inglês",
+            edition_year=1813,
+        )
         self.romance = romance
 
     def titles(self, response):
@@ -205,12 +232,15 @@ class AccountTests(TestCase):
 
     def test_cadastro_cria_usuario_e_ja_entra(self):
         # Os nomes password1 e password2 são os campos de senha do UserCreationForm
-        response = self.client.post(reverse("catalog:signup"), {
-            "username": "ana",
-            "email": "ana@exemplo.com",
-            "password1": "uma-senha-bem-forte-42",
-            "password2": "uma-senha-bem-forte-42",
-        })
+        response = self.client.post(
+            reverse("catalog:signup"),
+            {
+                "username": "ana",
+                "email": "ana@exemplo.com",
+                "password1": "uma-senha-bem-forte-42",
+                "password2": "uma-senha-bem-forte-42",
+            },
+        )
         self.assertRedirects(response, reverse("catalog:book_list"))
         self.assertTrue(User.objects.filter(username="ana").exists())
         # Já está logada: a lista de livros abre direto (200) em vez de mandar para o login
@@ -218,12 +248,15 @@ class AccountTests(TestCase):
 
     def test_cadastro_recusa_email_repetido(self):
         User.objects.create_user("ana", email="ana@exemplo.com", password="x")
-        response = self.client.post(reverse("catalog:signup"), {
-            "username": "ana2",
-            "email": "ANA@exemplo.com",  # mesmo e-mail, com letras maiúsculas
-            "password1": "uma-senha-bem-forte-42",
-            "password2": "uma-senha-bem-forte-42",
-        })
+        response = self.client.post(
+            reverse("catalog:signup"),
+            {
+                "username": "ana2",
+                "email": "ANA@exemplo.com",  # mesmo e-mail, com letras maiúsculas
+                "password1": "uma-senha-bem-forte-42",
+                "password2": "uma-senha-bem-forte-42",
+            },
+        )
         self.assertContains(response, "Já existe uma conta com este e-mail.")
 
     def test_recuperar_senha_envia_email(self):
@@ -335,3 +368,274 @@ class ReportTests(TestCase):
         self.client.force_login(self.equipe)
         response = self.client.get(reverse("catalog:report_detail", args=["nao-existe"]))
         self.assertEqual(response.status_code, 404)
+
+
+class DeployTests(TestCase):
+    """Testes da Aula 7: arquivos estáticos e funcionamento com DEBUG desligado."""
+
+    def setUp(self):
+        self.user = User.objects.create_user("maria", password="senha-forte-123")
+        self.book = Book.objects.create(title="Dom Casmurro", author="Machado de Assis", isbn="1111111111111")
+        self.client.force_login(self.user)
+
+    def test_css_e_js_vem_de_arquivos_estaticos(self):
+        response = self.client.get(reverse("catalog:book_list"))
+        self.assertContains(response, "/static/css/style.css")
+        self.assertContains(response, "/static/js/theme.js")
+
+    @override_settings(DEBUG=False, ALLOWED_HOSTS=["testserver"])
+    def test_paginas_funcionam_com_debug_desligado(self):
+        # Simula o servidor: DEBUG=False e apenas o endereço permitido
+        for url in [
+            reverse("catalog:book_list"),
+            reverse("catalog:book_detail", args=[self.book.id]),
+            reverse("catalog:my_loans"),
+        ]:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 200)
+
+    @override_settings(DEBUG=False, ALLOWED_HOSTS=["testserver"])
+    def test_endereco_inexistente_da_404_sem_detalhes(self):
+        response = self.client.get("/pagina-que-nao-existe/")
+        self.assertEqual(response.status_code, 404)
+        self.assertNotContains(response, "Using the URLconf", status_code=404)  # sem a página técnica do DEBUG
+
+
+class ApiTests(APITestCase):
+    """Testes da Aula 8: a API REST.
+
+    APITestCase é o TestCase do DRF: o self.client entende JSON e autenticação por token.
+    """
+
+    def setUp(self):
+        self.maria = User.objects.create_user("maria", password="senha-forte-123")
+        self.joao = User.objects.create_user("joao", password="senha-forte-123")
+        self.equipe = User.objects.create_user("bibliotecaria", password="senha-forte-123", is_staff=True)
+        self.romance = Category.objects.create(name="Romance")
+        self.book = Book.objects.create(
+            title="Dom Casmurro", author="Machado de Assis", isbn="1111111111111", copies_total=1, category=self.romance
+        )
+        Book.objects.create(title="Vidas Secas", author="Graciliano Ramos", isbn="2222222222222")
+
+    # ---------- leitura pública ----------
+
+    def test_lista_de_livros_e_publica_e_paginada(self):
+        response = self.client.get("/api/livros/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)  # a paginação devolve o total...
+        self.assertEqual(len(response.data["results"]), 2)  # ...e os itens da página em "results"
+
+    def test_busca_na_api_usa_os_filtros_do_acervo(self):
+        response = self.client.get("/api/livros/", {"q": "machado"})
+        titulos = [livro["title"] for livro in response.data["results"]]
+        self.assertEqual(titulos, ["Dom Casmurro"])
+
+    def test_detalhe_do_livro(self):
+        response = self.client.get(f"/api/livros/{self.book.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["category_name"], "Romance")
+        self.assertEqual(response.data["available"], 1)
+
+    def test_livro_inexistente_da_404(self):
+        response = self.client.get("/api/livros/9999/")
+        self.assertEqual(response.status_code, 404)
+
+    # ---------- escrita: só a equipe ----------
+
+    def test_visitante_nao_cadastra_livro(self):
+        response = self.client.post("/api/livros/", {"title": "Novo", "author": "A", "isbn": "3333333333333"})
+        self.assertEqual(response.status_code, 401)  # 401: não informou quem é
+
+    def test_leitor_nao_cadastra_livro(self):
+        self.client.force_authenticate(self.maria)
+        response = self.client.post("/api/livros/", {"title": "Novo", "author": "A", "isbn": "3333333333333"})
+        self.assertEqual(response.status_code, 403)  # 403: sabe quem é, mas não tem permissão
+
+    def test_equipe_cadastra_altera_e_apaga_livro(self):
+        self.client.force_authenticate(self.equipe)
+        response = self.client.post(
+            "/api/livros/",
+            {"title": "Iracema", "author": "José de Alencar", "isbn": "3333333333333", "copies_total": 2},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
+        novo_id = response.data["id"]
+        self.assertEqual(response.data["available"], 2)
+
+        response = self.client.patch(f"/api/livros/{novo_id}/", {"copies_total": 4}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Book.objects.get(pk=novo_id).copies_total, 4)
+
+        response = self.client.delete(f"/api/livros/{novo_id}/")
+        self.assertEqual(response.status_code, 204)  # 204: apagado, resposta sem conteúdo
+        self.assertFalse(Book.objects.filter(pk=novo_id).exists())
+
+    def test_isbn_repetido_da_400(self):
+        self.client.force_authenticate(self.equipe)
+        response = self.client.post(
+            "/api/livros/", {"title": "X", "author": "Y", "isbn": "1111111111111"}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("isbn", response.data)  # a resposta diz qual campo está errado
+
+    def test_nao_apaga_livro_com_historico(self):
+        make_loan(self.book, self.maria)
+        self.client.force_authenticate(self.equipe)
+        response = self.client.delete(f"/api/livros/{self.book.id}/")
+        self.assertEqual(response.status_code, 409)
+        self.assertTrue(Book.objects.filter(pk=self.book.id).exists())
+
+    # ---------- empréstimos ----------
+
+    def test_emprestar_pela_api(self):
+        self.client.force_authenticate(self.maria)
+        response = self.client.post(f"/api/livros/{self.book.id}/emprestar/")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["book_title"], "Dom Casmurro")
+        self.assertTrue(Loan.objects.filter(user=self.maria, book=self.book).exists())
+
+    def test_emprestar_sem_copias_da_409(self):
+        make_loan(self.book, self.joao)  # a única cópia
+        self.client.force_authenticate(self.maria)
+        response = self.client.post(f"/api/livros/{self.book.id}/emprestar/")
+        self.assertEqual(response.status_code, 409)
+        self.assertIn("Não há cópias", response.data["detail"])
+
+    def test_emprestar_exige_autenticacao(self):
+        response = self.client.post(f"/api/livros/{self.book.id}/emprestar/")
+        self.assertEqual(response.status_code, 401)
+
+    def test_cada_um_ve_so_os_proprios_emprestimos(self):
+        make_loan(self.book, self.maria)
+        make_loan(Book.objects.get(isbn="2222222222222"), self.joao)
+        self.client.force_authenticate(self.maria)
+        response = self.client.get("/api/emprestimos/")
+        self.assertEqual([e["book_title"] for e in response.data["results"]], ["Dom Casmurro"])
+
+    def test_devolver_pela_api(self):
+        loan = make_loan(self.book, self.maria)
+        self.client.force_authenticate(self.maria)
+        response = self.client.post(f"/api/emprestimos/{loan.id}/devolver/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.data["returned_at"])
+
+    def test_nao_devolve_emprestimo_de_outra_pessoa(self):
+        loan = make_loan(self.book, self.joao)
+        self.client.force_authenticate(self.maria)
+        response = self.client.post(f"/api/emprestimos/{loan.id}/devolver/")
+        self.assertEqual(response.status_code, 404)
+
+    # ---------- token e documentação ----------
+
+    def test_token_permite_usar_a_api(self):
+        response = self.client.post("/api/token/", {"username": "maria", "password": "senha-forte-123"})
+        self.assertEqual(response.status_code, 200)
+        token = response.data["token"]
+        # Um cliente novo, sem sessão: só o token no cabeçalho Authorization
+        cliente = APIClient()
+        cliente.credentials(HTTP_AUTHORIZATION=f"Token {token}")
+        self.assertEqual(cliente.get("/api/emprestimos/").status_code, 200)
+
+    def test_senha_errada_nao_gera_token(self):
+        response = self.client.post("/api/token/", {"username": "maria", "password": "errada"})
+        self.assertEqual(response.status_code, 400)
+
+    def test_pagina_inicial_da_api_e_publica(self):
+        response = self.client.get("/api/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("livros", response.data)  # links para os recursos
+
+    def test_documentacao_da_api(self):
+        self.assertEqual(self.client.get("/api/docs/").status_code, 200)
+        self.assertEqual(self.client.get("/api/schema/").status_code, 200)
+
+
+class ConcurrencyTests(TransactionTestCase):
+    """Aula 9: duas pessoas tentam pegar a última cópia exatamente ao mesmo tempo."""
+
+    def test_duas_pessoas_nao_levam_a_ultima_copia(self):
+        book = Book.objects.create(
+            title="Dom Casmurro", author="Machado de Assis", isbn="1111111111111", copies_total=1
+        )
+        maria = User.objects.create_user("maria", password="x")
+        joao = User.objects.create_user("joao", password="x")
+
+        # A "barreira" faz as duas threads esperarem uma pela outra num ponto do código:
+        # logo depois de conferir as cópias e antes de gravar o empréstimo.
+        barreira = threading.Barrier(2, timeout=2)
+        localdate_original = timezone.localdate
+
+        def espera_a_outra_pessoa(*args, **kwargs):
+            try:
+                barreira.wait()  # as duas chegam aqui depois de conferir que "há cópia"
+            except threading.BrokenBarrierError:
+                pass  # a outra thread não chegou (estava bloqueada esperando a primeira terminar)
+            return localdate_original(*args, **kwargs)
+
+        resultados = []
+
+        def tentar_emprestar(usuario):
+            try:
+                services.borrow_book(Book.objects.get(pk=book.pk), usuario)
+                resultados.append("emprestou")
+            except services.LoanError:
+                resultados.append("recusado")
+            finally:
+                connection.close()  # cada thread usa a sua própria conexão com o banco
+
+        with unittest.mock.patch("catalog.services.timezone.localdate", side_effect=espera_a_outra_pessoa):
+            threads = [threading.Thread(target=tentar_emprestar, args=(u,)) for u in (maria, joao)]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
+
+        self.assertEqual(sorted(resultados), ["emprestou", "recusado"])
+        self.assertEqual(Loan.objects.filter(book=book).count(), 1)
+
+
+class CoverageGapTests(TestCase):
+    """Aula 9: testes que faltavam, encontrados com o relatório de cobertura."""
+
+    def setUp(self):
+        self.maria = User.objects.create_user("maria", password="senha-forte-123")
+        self.book = Book.objects.create(
+            title="Dom Casmurro", author="Machado de Assis", isbn="1111111111111", copies_total=2
+        )
+
+    def test_nao_empresta_o_mesmo_livro_duas_vezes(self):
+        # A regra existia desde a Aula 2, mas nenhum teste passava por ela
+        services.borrow_book(self.book, self.maria)
+        with self.assertRaisesMessage(services.LoanError, "Você já está com"):
+            services.borrow_book(self.book, self.maria)
+        self.assertEqual(Loan.objects.filter(user=self.maria).count(), 1)
+
+    def test_comando_popular_acervo_nao_duplica(self):
+        # call_command roda um comando do manage.py dentro do teste; StringIO guarda o que ele imprimiria
+        call_command("popular_acervo", stdout=StringIO())
+        call_command("popular_acervo", stdout=StringIO())  # rodar de novo não pode duplicar nada
+        self.assertEqual(Book.objects.filter(isbn__startswith="9780000").count(), 27)
+        self.assertEqual(Category.objects.count(), 5)
+
+    def test_acao_do_admin_marca_como_devolvido(self):
+        loan = make_loan(self.book, self.maria)
+        admin = User.objects.create_superuser("admin", password="senha-forte-123")
+        self.client.force_login(admin)
+        # O formulário de ações do Admin envia o nome da ação e os ids marcados na lista
+        self.client.post(
+            reverse("admin:catalog_loan_changelist"),
+            {"action": "marcar_como_devolvido", "_selected_action": [loan.id]},
+        )
+        loan.refresh_from_db()
+        self.assertFalse(loan.is_active)
+
+
+class LoanPeriodTests(TestCase):
+    """Aula 10: a biblioteca aumentou o prazo de empréstimo para 21 dias."""
+
+    def test_prazo_do_emprestimo_e_de_21_dias(self):
+        maria = User.objects.create_user("maria", password="senha-forte-123")
+        book = Book.objects.create(title="Dom Casmurro", author="Machado de Assis", isbn="1111111111111")
+        loan = services.borrow_book(book, maria)
+        # O prazo é contado a partir de hoje
+        self.assertEqual(loan.due_date, timezone.localdate() + timedelta(days=21))

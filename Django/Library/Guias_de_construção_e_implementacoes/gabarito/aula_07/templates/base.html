@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {# Cada página pode trocar o título preenchendo este bloco #}
+  <title>{% block title %}Biblioteca{% endblock %}</title>
+  {# Os estilos ficam em static/css/style.css #}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="{% url 'catalog:book_list' %}"><strong>Biblioteca</strong></a>
+      {# "user" está disponível em todos os templates: é o usuário da requisição #}
+      {% if user.is_authenticated %}
+        <a href="{% url 'catalog:my_loans' %}">Meus empréstimos</a>
+        <a href="{% url 'catalog:advanced_search' %}">Busca avançada</a>
+        <a href="{% url 'catalog:search_history' %}">Histórico</a>
+        {# Links que só a equipe (is_staff) enxerga #}
+        {% if user.is_staff %}
+          <a href="{% url 'catalog:overdue_loans' %}">Atrasados</a>
+          <a href="{% url 'catalog:reports_index' %}">Relatórios</a>
+          <a href="{% url 'admin:index' %}">Admin</a>
+        {% endif %}
+      {% endif %}
+      <span class="spacer"></span>
+      <button id="theme-toggle" class="btn" type="button">Tema escuro</button>
+      {% if user.is_authenticated %}
+        <span class="user">Olá, {{ user.username }}</span>
+        {# Sair altera a sessão, por isso é um formulário POST (e não um link) #}
+        <form class="inline" method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Sair</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}">Entrar</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main>
+    {# Mensagens criadas nas views com messages.success(), messages.error()... Aparecem uma única vez. #}
+    {% for message in messages %}
+      <div class="message {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+
+    {# Aqui entra o conteúdo de cada página #}
+    {% block content %}{% endblock %}
+  </main>
+
+  {# O script do tema fica em static/js/theme.js #}
+  <script src="{% static 'js/theme.js' %}"></script>
+</body>
+</html>

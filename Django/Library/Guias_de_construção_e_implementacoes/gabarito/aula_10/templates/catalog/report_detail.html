@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · Biblioteca{% endblock %}
+{% block content %}
+  <p><a href="{% url 'catalog:reports_index' %}">« Todos os relatórios</a></p>
+  <h1>{{ title }}</h1>
+
+  <div class="actions">
+    {# length conta os itens de uma lista #}
+    <span class="muted">{{ rows|length }} linha(s)</span>
+    <span class="spacer"></span>
+    <a class="btn" href="{% url 'catalog:report_export' slug 'csv' %}">Baixar CSV</a>
+    <a class="btn" href="{% url 'catalog:report_export' slug 'xlsx' %}">Baixar Excel</a>
+    <a class="btn" href="{% url 'catalog:report_export' slug 'pdf' %}">Baixar PDF</a>
+  </div>
+
+  {# Este template serve para QUALQUER relatório: ele só percorre cabeçalhos e linhas #}
+  <div class="table-wrap" style="margin-top: 12px;">
+    <table>
+      <thead>
+        <tr>
+          {% for header in headers %}<th>{{ header }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {# Dois for aninhados: um para as linhas, outro para os valores de cada linha #}
+        {% for row in rows %}
+          <tr>
+            {% for value in row %}<td>{{ value }}</td>{% endfor %}
+          </tr>
+        {% empty %}
+          <tr><td colspan="{{ headers|length }}" class="muted">Nenhum dado ainda.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

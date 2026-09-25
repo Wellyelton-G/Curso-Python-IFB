@@ -1,6 +1,6 @@
 # Aula 6 — Relatórios, banco de dados e revisão geral
 
-Sistema de Biblioteca com Django · Aula 6 de 6 · [Roteiro do curso](README.md)
+Sistema de Biblioteca com Django · Aula 6 de 10 · [Roteiro do curso](README.md)
 
 ## Objetivos da aula
 
@@ -14,9 +14,9 @@ Sistema de Biblioteca com Django · Aula 6 de 6 · [Roteiro do curso](README.md)
 
 Ao final da aula o sistema está completo, e você consegue explicar como ele funciona, da URL até o banco de dados.
 
-| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| Concluída | Concluída | Concluída | Concluída | Concluída | **Aula atual** |
+| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 | Aula 7 | Aula 8 | Aula 9 | Aula 10 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Concluída | Concluída | Concluída | Concluída | Concluída | **Aula atual** | Publicação | API REST | Qualidade de código | Git em equipe |
 
 ## Antes de começar
 
@@ -703,12 +703,20 @@ python -X utf8 manage.py dumpdata --natural-foreign --natural-primary --exclude 
 | `--indent 2` | deixa o JSON legível |
 | `--output backup.json` | grava direto no arquivo, evitando problemas de codificação do `>` no PowerShell |
 
-**Restauração num banco novo e vazio:**
+**Restauração num banco novo e vazio.** Para testar o backup, pare o `runserver` (`Ctrl+C`) e renomeie o banco atual, guardando-o por segurança:
+
+```powershell
+Rename-Item db.sqlite3 db_antigo.sqlite3
+```
+
+Sem o arquivo, o Django cria um banco novo e vazio no próximo comando. Crie as tabelas e carregue o backup:
 
 ```powershell
 python manage.py migrate
 python -X utf8 manage.py loaddata backup.json
 ```
+
+Rode o `runserver` e confira os livros, os empréstimos e o login dos usuários. Se estiver tudo certo, apague o `db_antigo.sqlite3`: ele tem os mesmos dados e não deve ir para o GitHub na Aula 7. Se algo der errado, apague o `db.sqlite3` novo e renomeie o antigo de volta.
 
 O backup **não inclui as imagens**, que ficam na pasta `media/`: copie essa pasta junto. O `backup.json` contém dados pessoais e senhas (criptografadas), então não o envie para o GitHub: acrescente `backup.json` ao `.gitignore`.
 
@@ -929,15 +937,18 @@ Dados e regras de negócio: `models.py`. O que cada página faz: `views.py`. Qua
 
 ---
 
-## Encerramento
+## Fechamento
 
-O sistema está completo: autenticação, permissões, busca, relatórios, exportação, avaliações e testes automatizados, e cada parte está onde está por um motivo que foi discutido em aula.
+As funcionalidades do sistema estão completas: autenticação, permissões, busca, relatórios, exportação, avaliações e testes automatizados, e cada parte está onde está por um motivo que foi discutido em aula.
 
-Para continuar estudando:
+Falta um passo: por enquanto, o sistema só existe no seu computador. Na próxima aula ele vai para a internet.
+
+Para continuar estudando depois do curso:
 
 - **Class-Based Views** (`ListView`, `DetailView`, `CreateView`): outra forma de escrever views, com menos repetição.
 - **Django REST Framework**: APIs completas, para aplicativos de celular ou interfaces em JavaScript.
-- **Deploy**: publicar o sistema na internet (PythonAnywhere, Render, Railway...).
 - **Documentação oficial do Django**, com tutorial em português: <https://docs.djangoproject.com/pt-br/5.2/intro/>.
 
-[Voltar ao roteiro do curso](README.md)
+---
+
+Próxima aula: [Aula 7 — Publicando o sistema na internet](Aula_07_Publicacao_na_Internet.md).

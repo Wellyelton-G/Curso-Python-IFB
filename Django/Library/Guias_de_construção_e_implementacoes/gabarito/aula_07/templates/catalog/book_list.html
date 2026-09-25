@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Livros · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Acervo</h1>
+
+  {# Formulário de busca. É GET: os filtros vão para a URL e não precisam de csrf_token. #}
+  <form class="card" method="get">
+    <div class="form-grid">
+      <div>
+        <label for="q">Buscar por título, autor ou ISBN</label>
+        {# params é o request.GET enviado pela view: params.q é o texto buscado #}
+        {# list="suggestions" liga o campo à lista de sugestões do autocompletar #}
+        <input id="q" type="text" name="q" value="{{ params.q }}" placeholder="Ex.: Machado"
+               list="suggestions" autocomplete="off">
+        <datalist id="suggestions"></datalist>
+      </div>
+      <div>
+        <label for="categoria">Categoria</label>
+        <select id="categoria" name="categoria">
+          <option value="">Todas</option>
+          {% for category in categories %}
+            {# Da URL tudo chega como texto ("3"); stringformat:"s" converte o id (3) em texto para comparar #}
+            <option value="{{ category.id }}" {% if params.categoria == category.id|stringformat:"s" %}selected{% endif %}>
+              {{ category.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="ordenar">Ordenar por</label>
+        <select id="ordenar" name="ordenar">
+          {# order_options é a lista de pares (valor, texto) montada na view #}
+          {% for value, label in order_options %}
+            <option value="{{ value }}" {% if params.ordenar == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <label>
+        <input type="checkbox" name="disponivel" value="1" {% if params.disponivel == "1" %}checked{% endif %}>
+        Somente com cópias disponíveis
+      </label>
+      <button class="btn btn-primary" type="submit">Filtrar</button>
+      <a class="btn" href="{% url 'catalog:book_list' %}">Limpar</a>
+      <a href="{% url 'catalog:advanced_search' %}">Busca avançada »</a>
+    </div>
+  </form>
+
+  <div class="actions">
+    <span class="muted">{{ page_obj.paginator.count }} livro(s) encontrado(s).</span>
+    <span class="spacer"></span>
+    {# request.GET.urlencode repete os filtros atuais no link: o arquivo traz o mesmo resultado da tela #}
+    <a class="btn" href="{% url 'catalog:export_books' 'csv' %}?{{ request.GET.urlencode }}">Baixar CSV</a>
+    <a class="btn" href="{% url 'catalog:export_books' 'xlsx' %}?{{ request.GET.urlencode }}">Baixar Excel</a>
+    <a class="btn" href="{% url 'catalog:export_books' 'pdf' %}?{{ request.GET.urlencode }}">Baixar PDF</a>
+  </div>
+
+  {# Tabela com os livros da página atual #}
+  {% if page_obj %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Capa</th>
+            <th>Título</th>
+            <th>Autor(a)</th>
+            <th>Categoria</th>
+            <th>Ano</th>
+            <th>Disponíveis</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for book in page_obj %}
+            <tr>
+              <td>
+                {% if book.image %}
+                  <img class="cover" src="{{ book.image.url }}" alt="Capa de {{ book.title }}">
+                {% else %}
+                  <div class="cover">sem capa</div>
+                {% endif %}
+              </td>
+              {# O idioma só aparece quando não é português #}
+              <td><a href="{% url 'catalog:book_detail' book.id %}">{{ book.title }}</a>{% if book.language and book.language != "Português" %} <span class="muted">({{ book.language }})</span>{% endif %}</td>
+              <td>{{ book.author }}</td>
+              {# default mostra um travessão quando o valor está vazio #}
+              <td>{{ book.category.name|default:"—" }}</td>
+              <td>{{ book.edition_year|default:"—" }}</td>
+              {# book.available vem do annotate da view: não faz consulta extra #}
+              <td>{{ book.available }} de {{ book.copies_total }}</td>
+              <td>
+                {% if book.available > 0 %}
+                  <form class="inline" method="post" action="{% url 'catalog:borrow_book' book.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-primary" type="submit">Emprestar</button>
+                  </form>
+                {% else %}
+                  <button class="btn" disabled>Indisponível</button>
+                {% endif %}
+                {# Atalho visível apenas para a equipe #}
+                {% if user.is_staff %}
+                  <a class="btn" href="{% url 'catalog:book_borrowers' book.id %}">Com quem está?</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Navegação entre páginas (só aparece se houver mais de uma) #}
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="actions">
+        {# querystring copia os parâmetros atuais da URL e troca só o page #}
+        {% if page_obj.has_previous %}
+          <a class="btn" href="{% querystring page=page_obj.previous_page_number %}">« Anterior</a>
+        {% endif %}
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="btn" href="{% querystring page=page_obj.next_page_number %}">Próxima »</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <p class="muted">Nenhum livro encontrado.</p>
+  {% endif %}
+
+  <script>
+    // Autocompletar: enquanto a pessoa digita, pedimos sugestões à nossa API
+    (function () {
+      const input = document.getElementById("q");
+      const list = document.getElementById("suggestions");
+      let timer;  // guarda o "cronômetro" da última tecla
+
+      input.addEventListener("input", function () {
+        clearTimeout(timer);  // cancela o pedido agendado pela tecla anterior
+        const text = input.value.trim();
+        if (text.length < 2) { list.innerHTML = ""; return; }  // menos de 2 letras: sem sugestões
+
+        // Espera a pessoa parar de digitar por 300 ms antes de perguntar ao servidor
+        timer = setTimeout(async function () {
+          // encodeURIComponent protege acentos e espaços dentro da URL
+          const url = "{% url 'catalog:book_suggestions' %}?q=" + encodeURIComponent(text);
+          const response = await fetch(url);  // chama a API sem recarregar a página
+          const data = await response.json();  // {"suggestions": [...]}
+          list.innerHTML = "";  // limpa as sugestões antigas
+          for (const suggestion of data.suggestions) {
+            const option = document.createElement("option");
+            option.value = suggestion;
+            list.appendChild(option);
+          }
+        }, 300);
+      });
+    })();
+  </script>
+{% endblock %}

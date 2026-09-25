@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Relatórios · Biblioteca{% endblock %}
+{% block content %}
+  <h1>Relatórios</h1>
+  <p class="muted">Escolha um relatório para ver na tela ou baixar em CSV, Excel ou PDF.</p>
+
+  {# reports é a lista de pares (slug, título) montada na view a partir do dicionário REPORTS #}
+  {% for slug, title in reports %}
+    <div class="card actions" style="margin-top: 0;">
+      <a href="{% url 'catalog:report_detail' slug %}"><strong>{{ title }}</strong></a>
+      <span class="spacer"></span>
+      {# A rota report_export recebe dois parâmetros: o relatório e o formato #}
+      <a class="btn" href="{% url 'catalog:report_export' slug 'csv' %}">CSV</a>
+      <a class="btn" href="{% url 'catalog:report_export' slug 'xlsx' %}">Excel</a>
+      <a class="btn" href="{% url 'catalog:report_export' slug 'pdf' %}">PDF</a>
+    </div>
+  {% endfor %}
+{% endblock %}

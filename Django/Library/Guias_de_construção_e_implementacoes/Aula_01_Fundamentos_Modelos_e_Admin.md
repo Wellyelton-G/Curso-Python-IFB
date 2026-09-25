@@ -1,6 +1,6 @@
 # Aula 1 — Fundamentos, modelos e o painel Admin
 
-Sistema de Biblioteca com Django · Aula 1 de 6 · [Roteiro do curso](README.md)
+Sistema de Biblioteca com Django · Aula 1 de 10 · [Roteiro do curso](README.md)
 
 ## Objetivos da aula
 
@@ -13,9 +13,9 @@ Sistema de Biblioteca com Django · Aula 1 de 6 · [Roteiro do curso](README.md)
 
 Ao final da aula teremos um painel administrativo funcionando, onde já é possível cadastrar livros (com capa) e empréstimos.
 
-| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Aula atual** | Páginas e empréstimos | Equipe, busca e testes | Categorias e exportação | Contas e avaliações | Relatórios e banco |
+| Aula 1 | Aula 2 | Aula 3 | Aula 4 | Aula 5 | Aula 6 | Aula 7 | Aula 8 | Aula 9 | Aula 10 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Aula atual** | Páginas e empréstimos | Equipe, busca e testes | Categorias e exportação | Contas e avaliações | Relatórios e banco | Publicação | API REST | Qualidade de código | Git em equipe |
 
 ---
 

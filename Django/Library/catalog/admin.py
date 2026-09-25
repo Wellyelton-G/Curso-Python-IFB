@@ -13,8 +13,7 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
     # Colunas mostradas na lista de livros (pode incluir @property, como copies_available)
-    list_display = ("title", "author", "category", "language", "edition_year",
-                    "copies_total", "copies_available")
+    list_display = ("title", "author", "category", "language", "edition_year", "copies_total", "copies_available")
     # Filtros laterais por categoria e idioma
     list_filter = ("category", "language")
     # Campos pesquisados pela caixa de busca do Admin
